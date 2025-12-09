@@ -1,0 +1,23 @@
+.tf-counter .counter-title {
+    font-weight: 500;
+    font-size: 27px;
+    line-height: 35px;
+    margin-top: 29px;
+}
+
+.tf-counter .counter-number-wrapper {
+    font-weight: 700;
+    font-size: 100px;
+    line-height: 96px;
+    letter-spacing: 0em;
+    display: inline-flex;
+    font-family: 'Gotham';
+}
+
+.tf-counter .counter-number-suffix {
+    color: var(--theme-primary-color);
+}
+
+.tf-counter .wrap-counter-inner {
+    text-align: center;
+}
