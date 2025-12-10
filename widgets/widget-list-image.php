@@ -2,492 +2,157 @@
 class TFListImage_Widget extends \Elementor\Widget_Base {
 
 	public function get_name() {
-        return 'tf-list-image';
-    }
-    
-    public function get_title() {
-        return esc_html__( 'TF Partner', 'tobi' );
-    }
-
-    public function get_icon() {
-		return 'eicon-slider-push';
-    }
-    
-    public function get_categories() {
-        return [ 'themesflat_addons' ];
-    }
-
-    public function get_style_depends() {
-		return ['tf-list-image'];
+		return 'tf-list-image';
 	}
 
+	public function get_title() {
+		return esc_html__( 'TF List Image', 'themesflat-core' );
+	}
+
+	public function get_icon() {
+		return 'eicon-gallery-grid';
+	}
+
+	public function get_categories() {
+		return [ 'themesflat_addons' ];
+	}
+
+	public function get_style_depends() {
+		return [ 'owl-carousel' ];
+	}
+
+	public function get_script_depends() {
+		return [ 'tf-image-list', 'owl-carousel' ];
+	}
+
+	// ============================
+	// CONTROLS
+	// ============================
 	protected function register_controls() {
-		// Start List Setting        
-			$this->start_controls_section( 'section_setting',
-	            [
-	                'label' => esc_html__('Setting', 'tobi'),
-	            ]
-	        );
 
-			$this->add_control(
-				'partner_style',
-				[
-					'label' => esc_html__( 'Partner Style', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::CHOOSE,
-					'options' => [
-						'style-text' => [
-							'title' => esc_html__( 'Style Text', 'tobi' ),
-							'icon' => 'fa fa-edit',
-						],
-						'style-image' => [
-							'title' => esc_html__( 'Style Image', 'tobi' ),
-							'icon' => 'fa fa-image',
-						],
-					],
-					'default' => 'style-image',
-					'toggle' => false,
-				]
-			);
+		$this->start_controls_section(
+			'section_content',
+			[
+				'label' => esc_html__( 'Images', 'themesflat-core' ),
+			]
+		);
 
-			$repeater = new \Elementor\Repeater();
-			$repeater2 = new \Elementor\Repeater();
+		// Repeater Image List
+		$repeater = new \Elementor\Repeater();
 
-			$repeater->add_control(
-				'image',
-				[
-					'label' => esc_html__( 'Choose Image', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::MEDIA,
-					'default' => [
-						'url' => URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-					],
-				]
-			);
+		$repeater->add_control(
+			'image',
+			[
+				'label'   => esc_html__( 'Image', 'themesflat-core' ),
+				'type'    => \Elementor\Controls_Manager::MEDIA,
+				'default' => [
+					'url' => \Elementor\Utils::get_placeholder_image_src(),
+				],
+			]
+		);
 
-			$repeater->add_control(
-				'link_image',
-				[
-					'label' => esc_html__( 'Link', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::URL,
-					'placeholder' => esc_html__( 'https://your-link.com', 'tobi' ),
-					'default' => [
-						'url' => '#',
-						'is_external' => false,
-						'nofollow' => false,
-					],
-				]
-			);
+		$this->add_control(
+			'list',
+			[
+				'label' => esc_html__( 'Image List', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::REPEATER,
+				'fields' => $repeater->get_controls(),
+				'default' => [
+					[ 'image' => [ 'url' => \Elementor\Utils::get_placeholder_image_src() ] ],
+				],
+			]
+		);
 
-			$repeater2->add_control(
-				'partner_text',
-				[
-					'label' => esc_html__( 'Content Text', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::TEXT,
-					'default' => esc_html__( 'IT Services', 'tobi' ),
-				]
-			);
+		// Enable Nav
+		$this->add_control(
+			'show_nav',
+			[
+				'label'        => esc_html__( 'Enable Navigation', 'themesflat-core' ),
+				'type'         => \Elementor\Controls_Manager::SWITCHER,
+				'label_on'     => 'Yes',
+				'label_off'    => 'No',
+				'default'      => 'yes',
+			]
+		);
 
-			$repeater2->add_control(
-				'icon_text',
-				[
-					'label' => esc_html__( 'Icon', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::ICONS,
-					'default' => [
-						'value' => 'fas fa-star-of-life',
-						'library' => 'theme_icon',
-					],
-				]
-			);
+		// Spacing
+		$this->add_control(
+			'item_margin',
+			[
+				'label'   => esc_html__( 'Item Spacing (px)', 'themesflat-core' ),
+				'type'    => \Elementor\Controls_Manager::NUMBER,
+				'default' => 10,
+				'min'     => 0,
+				'max'     => 100,
+			]
+		);
 
-			$repeater2->add_control(
-				'link_text',
-				[
-					'label' => esc_html__( 'Content Link', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::URL,
-					'placeholder' => esc_html__( 'https://your-link.com', 'tobi' ),
-					'default' => [
-						'url' => '#',
-						'is_external' => false,
-						'nofollow' => false,
-					],
-				]
-			);
+		// Responsive items
+		$this->add_responsive_control(
+			'items_responsive',
+			[
+				'label' => esc_html__( 'Items Per Row', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::NUMBER,
+				'devices' => [ 'desktop', 'tablet', 'mobile' ],
+				'default' => 4,
+				'tablet_default' => 3,
+				'mobile_default' => 2,
+				'min' => 1,
+				'max' => 10,
+			]
+		);
 
-			$this->add_control(
-				'list2',
-				[
-					'label' => esc_html__( 'List', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::REPEATER,
-					'fields' => $repeater2->get_controls(),
-					'default' => [
-						[
-							'partner_text' => esc_html__( 'IT Services', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'partner_text' => esc_html__( 'Cyber Security', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'partner_text' => esc_html__( 'Data Security', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'partner_text' => esc_html__( 'IT Services', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'partner_text' => esc_html__( 'Cyber Security', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'partner_text' => esc_html__( 'Data Security', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'partner_text' => esc_html__( 'IT Services', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'partner_text' => esc_html__( 'Cyber Security', 'tobi' ),
-							'link_text' => esc_html__( '#', 'tobi' ),
-						],
-					],
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			);
-
-			$this->add_control(
-				'list',
-				[
-					'label' => esc_html__( 'List', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::REPEATER,
-					'fields' => $repeater->get_controls(),
-					'default' => [
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-						[
-							'image' =>  URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-							'link' => esc_html__( '#', 'tobi' ),
-						],
-					],
-					'condition' => [
-						'partner_style' => 'style-image'
-					]
-				]
-			);
-
-			$this->add_control(
-				'hover_image',
-				[
-					'label' => esc_html__( 'Enable Hover Filter', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SWITCHER,
-					'label_on' => esc_html__( 'On', 'tobi' ),
-					'label_off' => esc_html__( 'Off', 'tobi' ),
-					'return_value' => 'yes',
-					'default' => 'no',
-					'condition' => [
-						'partner_style' => 'style-image'
-					]
-				]
-			);
-
-			$this->add_control(
-				'hover_stop',
-				[
-					'label' => esc_html__( 'Hover Stop', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SWITCHER,
-					'label_on' => esc_html__( 'On', 'tobi' ),
-					'label_off' => esc_html__( 'Off', 'tobi' ),
-					'return_value' => 'yes',
-					'default' => 'no',
-				]
-			);
-
-	        
-			$this->end_controls_section();
-        // /.End List Setting              
-
-	    // Start Style
-	        $this->start_controls_section( 'section_style',
-	            [
-	                'label' => esc_html__( 'Style', 'tobi' ),
-	                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-	            ]
-	        );
-
-			$this->add_control(
-				'h_image',
-				[
-					'label' => esc_html__( 'Image', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::HEADING,
-					'condition' => [
-						'partner_style' => 'style-image'
-					]
-				]
-			);
-
-			$this->add_responsive_control( 
-	        	'image_size',
-				[
-					'label' => esc_html__( 'Image Width', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SLIDER,
-					'size_units' => [ 'px' ],
-					'range' => [
-						'px' => [
-							'min' => 0,
-							'max' => 1000,
-							'step' => 1,
-						],
-					],
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .box-item .item  ' => 'width: {{SIZE}}{{UNIT}};',
-					],
-					'condition' => [
-						'partner_style' => 'style-image'
-					]
-				]
-			);
-
-			$this->add_responsive_control( 
-	        	'image_size_h',
-				[
-					'label' => esc_html__( 'Image Height', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SLIDER,
-					'size_units' => [ 'px' ],
-					'range' => [
-						'px' => [
-							'min' => 0,
-							'max' => 1000,
-							'step' => 1,
-						],
-					],
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .box-item .item  ' => 'width: {{SIZE}}{{UNIT}};',
-					],
-					'condition' => [
-						'partner_style' => 'style-image'
-					]
-				]
-			);
-
-			$this->add_control(
-				'heading_spacing',
-				[
-					'label' => esc_html__( 'Spacing Item', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::HEADING,
-					'separator' => 'before',
-				]
-			);
-
-			$this->add_responsive_control( 
-	        	'image_size_spc',
-				[
-					'label' => esc_html__( 'Spacing', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SLIDER,
-					'size_units' => [ 'px' ],
-					'range' => [
-						'px' => [
-							'min' => 0,
-							'max' => 1000,
-							'step' => 1,
-						],
-					],
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .box-item .item' => 'padding-left: {{SIZE}}{{UNIT}};padding-right: {{SIZE}}{{UNIT}};',
-					],
-				]
-			);
-
-			$this->add_control(
-				'heading_icon',
-				[
-					'label' => esc_html__( 'Icon', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::HEADING,
-					'separator' => 'before',
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			);
-
-			$this->add_responsive_control( 
-	        	'size_icon',
-				[
-					'label' => esc_html__( 'Icon Size', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SLIDER,
-					'size_units' => [ 'px' ],
-					'range' => [
-						'px' => [
-							'min' => 0,
-							'max' => 1000,
-							'step' => 1,
-						],
-					],
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .icon i' => 'font-size: {{SIZE}}{{UNIT}};',
-						'{{WRAPPER}} .tf-list-image .icon svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
-					],
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			);
-
-			$this->add_control( 
-				'icon_color',
-				[
-					'label' => esc_html__( 'Color', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::COLOR,
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .icon i' => 'color: {{VALUE}}',
-						'{{WRAPPER}} .tf-list-image .icon svg path' => 'fill: {{VALUE}}',
-					],
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			); 
-
-			$this->add_responsive_control( 
-	        	'icon_text_spacing',
-				[
-					'label' => esc_html__( 'Icon Spacing', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SLIDER,
-					'size_units' => [ 'px' ],
-					'range' => [
-						'px' => [
-							'min' => 0,
-							'max' => 1000,
-							'step' => 1,
-						],
-					],
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .list-text .icon' => 'margin-right: {{SIZE}}{{UNIT}};',
-					],
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			);
-
-			$this->add_control(
-				'heading_text',
-				[
-					'label' => esc_html__( 'Text', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::HEADING,
-					'separator' => 'before',
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			);
-
-	        $this->add_group_control( 
-	        	\Elementor\Group_Control_Typography::get_type(),
-				[
-					'name' => 'text_typography',
-					'label' => esc_html__( 'Text Typography', 'tobi' ),
-					'selector' => '{{WRAPPER}} .tf-list-image .list-text a',
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			);
-			
-			$this->add_control( 
-				'text_color',
-				[
-					'label' => esc_html__( 'Color', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::COLOR,
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .list-text a' => 'color: {{VALUE}}',
-					],
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			); 
-
-			$this->add_control( 
-				'text_color_hover',
-				[
-					'label' => esc_html__( 'Color Hover', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::COLOR,
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .list-text a:hover' => 'color: {{VALUE}}',
-						'{{WRAPPER}} .tf-list-image .list-text a:hover i' => 'color: {{VALUE}}',
-						'{{WRAPPER}} .tf-list-image .list-text a:hover svg path' => 'fill: {{VALUE}}',
-					],
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			); 
-
-			$this->add_responsive_control( 
-	        	'line_hover_hieght',
-				[
-					'label' => esc_html__( 'Height Line Bottom Hover', 'tobi' ),
-					'type' => \Elementor\Controls_Manager::SLIDER,
-					'size_units' => [ 'px' ],
-					'range' => [
-						'px' => [
-							'min' => 0,
-							'max' => 1000,
-							'step' => 1,
-						],
-					],
-					'selectors' => [
-						'{{WRAPPER}} .tf-list-image .list-text a .text::after' => 'height: {{SIZE}}{{UNIT}};',
-					],
-					'condition' => [
-						'partner_style' => 'style-text'
-					]
-				]
-			);
-
-        	$this->end_controls_section();    
-	    // /.End Style 
+		$this->end_controls_section();
 	}
 
-	protected function render($instance = []) {
-		$settings = $this->get_settings_for_display(); ?>
-<div class="owl-carousel owl-theme">
-    <div class="item">
-	<div class="image-partner">
-	 <img src="" alt="">
-	</div>
-	</div>
+	// ============================
+	// RENDER
+	// ============================
+	protected function render() {
+		$s = $this->get_settings_for_display();
+
+		$show_nav = $s['show_nav'] === 'yes';
+
+		$item_margin     = $s['item_margin'];
+		?>
+
+<div class="tf-list-image" style="position: relative;">
+
+    <div class="owl-carousel owl-theme" data-nav="<?php echo $show_nav ? 'true' : 'false'; ?>"
+        data-margin="<?php echo esc_attr($item_margin); ?>">
+
+        <?php foreach ( $s['list'] as $item ) : ?>
+        <div class="item">
+            <div class="image-partner" style="text-align:center;">
+                <img src="<?php echo esc_url( $item['image']['url'] ); ?>" alt="">
+            </div>
+        </div>
+        <?php endforeach; ?>
+
+    </div>
+
+    <?php if ( $show_nav ) : ?>
+
+    <div class="nav-button nav-prev">
+        <svg width="10" height="17" viewBox="0 0 10 17" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M0 8.44995L8.35 0L9.53999 1.19995L6.66 4.08984L2.35999 8.44995L6.66 12.8101L9.52 15.7L8.32999 16.8999L0 8.44995Z"
+                fill="#BF61A3" />
+        </svg>
+    </div>
+
+    <div class="nav-button nav-next">
+        <svg width="10" height="17" viewBox="0 0 10 17" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M9.54004 8.44995L1.19006 0L0 1.19995L2.88 4.08984L7.18005 8.44995L2.88 12.8101L0.0200195 15.7L1.20996 16.8999L9.54004 8.44995Z"
+                fill="#BF61A3" />
+        </svg>
+    </div>
+
+    <?php endif; ?>
+
 </div>
-	<?php	
-	}
 
+<?php
+	}
 }
