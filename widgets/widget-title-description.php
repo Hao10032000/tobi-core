@@ -18,148 +18,274 @@ class TFTitleDescription_Widget extends \Elementor\Widget_Base {
     }
 
 	protected function register_controls() {
-		// Start List Setting        
-			$this->start_controls_section( 'section_setting',
-	            [
-	                'label' => esc_html__('Setting', 'themesflat-core'),
-	            ]
-	        );
 
-			$this->add_control(
-				'heading',
-				[
-					'label' => esc_html__( 'Title', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::TEXTAREA,					
-					'default' => esc_html__( 'communication', 'themesflat-core' ),
-					'label_block' => true,
-				]
-			);
+    /* -----------------------------------------
+     * SECTION: CONTENT
+     * ----------------------------------------- */
+    $this->start_controls_section(
+        'section_setting',
+        [
+            'label' => esc_html__('Content', 'themesflat-core'),
+        ]
+    );
 
-            $this->add_control(
-				'description',
-				[
-					'label' => esc_html__( 'Description', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::TEXTAREA,					
-					'default' => esc_html__( 'Que signifie communiquer
-pour nous ? Texte qui explique
-notre méthodologie ipsum
-dolor sit amet, consectetuer
-adipiscing elit, sed diam
-nonummy nibh euismod
-tincidunt ut laoreet dolore
-magna aliquam Lorem ipsum
-dolor sit amet, consectetuer
-adipiscing elit, sed diam
-nonummy nibh euismod
-tincidunt ut laoreet dolore
-magna aliquam erat volutpat.', 'themesflat-core' ),
-					'label_block' => true,
-				]
-			);
+    // Title
+    $this->add_control(
+        'heading',
+        [
+            'label' => esc_html__('Title', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::TEXT,
+            'default' => esc_html__('NOTRE MISSION', 'themesflat-core'),
+            'label_block' => true,
+        ]
+    );
 
-			$this->end_controls_section();
-        // /.End List Setting              
+    // Title Tag
+    $this->add_control(
+        'title_tag',
+        [
+            'label' => esc_html__('Title HTML Tag', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::SELECT,
+            'default' => 'h3',
+            'options' => [
+                'h1' => 'H1',
+                'h2' => 'H2',
+                'h3' => 'H3',
+                'h4' => 'H4',
+                'h5' => 'H5',
+                'h6' => 'H6',
+                'div' => 'DIV',
+                'span' => 'SPAN',
+                'p' => 'P',
+            ],
+        ]
+    );
 
-			 // Start Style
-			 $this->start_controls_section( 'section_style',
-			 [
-				 'label' => esc_html__( 'Style', 'themesflat-core' ),
-				 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-			 ]
-		 );	
-
-		 $this->add_control(
-			 'h_title',
-			 [
-				 'label' => esc_html__( 'Title', 'themesflat-core' ),
-				 'type' => \Elementor\Controls_Manager::HEADING,
-				 'separator' => 'before',
-			 ]
-		 );	
-
-		 $this->add_group_control( 
-			 \Elementor\Group_Control_Typography::get_type(),
-			 [
-				 'name' => 'typography_title',
-				 'label' => esc_html__( 'Typography', 'themesflat-core' ),
-				 'selector' => '{{WRAPPER}} .title-list h3',
-			 ]
-		 ); 
-
-		 $this->add_control( 
-			 'subtitle_color',
-			 [
-				 'label' => esc_html__( 'Color', 'themesflat-core' ),
-				 'type' => \Elementor\Controls_Manager::COLOR,
-				 'selectors' => [
-					 '{{WRAPPER}} .title-list h3' => 'color: {{VALUE}}',					
-					 '{{WRAPPER}} .title-list h3 path' => 'fill: {{VALUE}}',					
-				 ],
-			 ]
-		 );			
-
-
-         $this->add_control(
-            'h_desc',
-            [
-                'label' => esc_html__( 'Description', 'themesflat-core' ),
-                'type' => \Elementor\Controls_Manager::HEADING,
-                'separator' => 'before',
-            ]
-        );	
-
-        $this->add_group_control( 
-            \Elementor\Group_Control_Typography::get_type(),
-            [
-                'name' => 'typography_desc',
-                'label' => esc_html__( 'Typography', 'themesflat-core' ),
-                'selector' => '{{WRAPPER}} .title-list .description',
-            ]
-        ); 
-
-        $this->add_control( 
-            'desc_color',
-            [
-                'label' => esc_html__( 'Color', 'themesflat-core' ),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .title-list .description' => 'color: {{VALUE}}',					
+    // Gộp icon + svg vào 1 control dạng CHỌN TYPE
+    $this->add_control(
+        'icon_type',
+        [
+            'label' => esc_html__('Icon Type', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::CHOOSE,
+            'options' => [
+                'icon' => [
+                    'title' => 'Icon',
+                    'icon' => 'eicon-star',
                 ],
+                'svg' => [
+                    'title' => 'SVG',
+                    'icon' => 'eicon-code',
+                ],
+            ],
+            'default' => 'icon',
+            'toggle' => true,
+        ]
+    );
+
+    // LIBRARY ICON
+    $this->add_control(
+        'title_icon',
+        [
+            'label' => esc_html__('Icon', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::ICONS,
+            'default' => [
+                'value' => 'fas fa-arrow-right',
+                'library' => 'fa-solid',
+            ],
+            'condition' => [
+                'icon_type' => 'icon'
             ]
-        );	
+        ]
+    );
 
-        $this->add_responsive_control(
-			'desc_list_padding_desc',
-			[
-				'label' => esc_html__( 'Padding', 'themesflat-core' ),
-				'type' => \Elementor\Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', '%', 'em' ],
-				'selectors' => [
-					'{{WRAPPER}} .title-list .description' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				],
-			]
-		);
-				 
-		 $this->end_controls_section();    
-	 // /.End Style 
+    // SVG UPLOAD
+    $this->add_control(
+        'title_svg',
+        [
+            'label' => esc_html__('Upload SVG', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::MEDIA,
+            'media_types' => ['svg'],
+            'condition' => [
+                'icon_type' => 'svg'
+            ]
+        ]
+    );
 
-	}
+    // Description
+    $this->add_control(
+        'description',
+        [
+            'label' => esc_html__('Description', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::TEXTAREA,
+            'default' => esc_html__('Accompagner vos recrutements, vos formations et vos pratiques managériales', 'themesflat-core'),
+            'label_block' => true,
+        ]
+    );
 
-	protected function render($instance = []) {
-		$settings = $this->get_settings_for_display();
-        ?>
+    $this->end_controls_section();
 
-        <div class="title-list st2">
-            <h3> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="19" viewBox="0 0 20 19" fill="none">
-<path d="M9.04894 1.54302C9.3483 0.621708 10.6517 0.621707 10.9511 1.54302L12.4697 6.21678C12.6035 6.6288 12.9875 6.90776 13.4207 6.90776H18.335C19.3037 6.90776 19.7065 8.14738 18.9228 8.71678L14.947 11.6053C14.5966 11.86 14.4499 12.3113 14.5838 12.7234L16.1024 17.3971C16.4017 18.3184 15.3472 19.0846 14.5635 18.5152L10.5878 15.6266C10.2373 15.372 9.7627 15.372 9.41221 15.6266L5.43648 18.5152C4.65276 19.0846 3.59828 18.3184 3.89763 17.3971L5.41623 12.7234C5.55011 12.3113 5.40345 11.86 5.05296 11.6053L1.07722 8.71678C0.293507 8.14738 0.696283 6.90776 1.66501 6.90776H6.57929C7.01252 6.90776 7.39647 6.6288 7.53035 6.21678L9.04894 1.54302Z" fill="#31F556"/>
-</svg> <?php echo $settings['heading']; ?> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="19" viewBox="0 0 20 19" fill="none">
-<path d="M9.04894 1.54302C9.3483 0.621708 10.6517 0.621707 10.9511 1.54302L12.4697 6.21678C12.6035 6.6288 12.9875 6.90776 13.4207 6.90776H18.335C19.3037 6.90776 19.7065 8.14738 18.9228 8.71678L14.947 11.6053C14.5966 11.86 14.4499 12.3113 14.5838 12.7234L16.1024 17.3971C16.4017 18.3184 15.3472 19.0846 14.5635 18.5152L10.5878 15.6266C10.2373 15.372 9.7627 15.372 9.41221 15.6266L5.43648 18.5152C4.65276 19.0846 3.59828 18.3184 3.89763 17.3971L5.41623 12.7234C5.55011 12.3113 5.40345 11.86 5.05296 11.6053L1.07722 8.71678C0.293507 8.14738 0.696283 6.90776 1.66501 6.90776H6.57929C7.01252 6.90776 7.39647 6.6288 7.53035 6.21678L9.04894 1.54302Z" fill="#31F556"/>
-</svg> </h3>
+    /* -----------------------------------------
+     * SECTION: STYLE
+     * ----------------------------------------- */
+    $this->start_controls_section(
+        'section_style',
+        [
+            'label' => esc_html__('Style', 'themesflat-core'),
+            'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+        ]
+    );
 
-			<?php echo sprintf( '<div class="description">%1$s</div>', $settings['description'] ); ?>
-        </div>
-        
-        <?php
+    // TITLE STYLE
+    $this->add_control(
+        'title_style_heading',
+        [
+            'label' => esc_html__('Title', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::HEADING,
+        ]
+    );
+
+    $this->add_group_control(
+        \Elementor\Group_Control_Typography::get_type(),
+        [
+            'name' => 'typography_title',
+            'selector' => '{{WRAPPER}} .title-wrap .title-text',
+        ]
+    );
+
+    $this->add_control(
+        'title_color',
+        [
+            'label' => esc_html__('Color', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .title-wrap .title-text' => 'color: {{VALUE}}',
+            ],
+        ]
+    );
+
+    // ICON STYLE
+    $this->add_control(
+        'icon_style_heading',
+        [
+            'label' => esc_html__('Icon', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::HEADING,
+            'separator' => 'before'
+        ]
+    );
+
+    $this->add_responsive_control(
+        'icon_size',
+        [
+            'label' => esc_html__('Size', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::SLIDER,
+            'range' => [
+                'px' => ['min' => 8, 'max' => 80]
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .title-wrap i' => 'font-size: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .title-wrap svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+            ],
+        ]
+    );
+
+    $this->add_control(
+        'icon_color',
+        [
+            'label' => esc_html__('Color', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .title-wrap i' => 'color: {{VALUE}}',
+                '{{WRAPPER}} .title-wrap svg path' => 'fill: {{VALUE}}',
+            ],
+        ]
+    );
+
+    // DESCRIPTION STYLE
+    $this->add_control(
+        'desc_style_heading',
+        [
+            'label' => esc_html__('Description', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::HEADING,
+            'separator' => 'before'
+        ]
+    );
+
+    $this->add_group_control(
+        \Elementor\Group_Control_Typography::get_type(),
+        [
+            'name' => 'typography_desc',
+            'selector' => '{{WRAPPER}} .title-list .description',
+        ]
+    );
+
+    $this->add_control(
+        'desc_color',
+        [
+            'label' => esc_html__('Color', 'themesflat-core'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .title-list .description' => 'color: {{VALUE}}',
+            ],
+        ]
+    );
+	$this->add_control(
+    'desc_margin',
+    [
+        'label' => esc_html__( 'Margin', 'themesflat-core' ),
+        'type' => \Elementor\Controls_Manager::DIMENSIONS,
+        'size_units' => [ 'px', '%', 'em' ],
+        'selectors' => [
+            '{{WRAPPER}} .title-list .description' =>
+                'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+        ],
+    ]
+);
+
+    $this->end_controls_section();
 }
 
+
+protected function render($instance = []) {
+    $settings = $this->get_settings_for_display();
+
+    $tag  = $settings['title_tag'];
+    $text = $settings['heading'];
+
+    // ICON/SVG HTML
+    $icon_html = '';
+
+    if ($settings['icon_type'] === 'svg' && !empty($settings['title_svg']['url'])) {
+
+        $response = wp_remote_get( $settings['title_svg']['url'] );
+        if (!is_wp_error($response)) {
+            $svg_content = wp_remote_retrieve_body($response);
+            $icon_html = '<span class="icon-svg">'.$svg_content.'</span>';
+        }
+
+    } elseif ($settings['icon_type'] === 'icon' && !empty($settings['title_icon']['value'])) {
+
+        ob_start();
+        \Elementor\Icons_Manager::render_icon(
+            $settings['title_icon'],
+            [ 'aria-hidden' => 'true' ]
+        );
+        $icon_html = ob_get_clean();
+    }
+    ?>
+
+    <div class="title-list">
+        <div class="title-wrap">
+            <?php echo $icon_html; ?>
+            <<?php echo $tag; ?> class="title-text">
+                <?php echo esc_html($text); ?>
+            </<?php echo $tag; ?>>
+        </div>
+
+        <div class="description">
+            <?php echo wp_kses_post($settings['description']); ?>
+        </div>
+    </div>
+
+    <?php
+}
 }

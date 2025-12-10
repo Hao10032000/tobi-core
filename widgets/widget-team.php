@@ -10,7 +10,7 @@ class TFTeam_Widget extends \Elementor\Widget_Base {
     }
 
     public function get_icon() {
-		return 'eicon-slider-push';
+		return 'eicon-person';
     }
     
     public function get_categories() {
@@ -18,138 +18,239 @@ class TFTeam_Widget extends \Elementor\Widget_Base {
     }
 
 	protected function register_controls() {
-		// Start List Setting        
-			$this->start_controls_section( 'section_setting',
-	            [
-	                'label' => esc_html__('Setting', 'themesflat-core'),
-	            ]
-	        );
 
-            $this->add_control(
-				'image_thumb',
-				[
-					'label' => esc_html__( 'Choose Avatar', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::MEDIA,
-					'default' => [
-						'url' => URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME."assets/img/placeholder.jpg",
-					],
-				]
-			);
+	    // ==== TEAM SETTINGS ====
+		$this->start_controls_section(
+			'section_setting',
+	        [ 'label' => esc_html__( 'Settings', 'themesflat-core' ) ]
+	    );
 
-			$this->add_control(
-				'name',
-				[
-					'label' => esc_html__( 'Name', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::TEXTAREA,					
-					'default' => esc_html__( 'Renaud Boissac', 'themesflat-core' ),
-					'label_block' => true,
-				]
-			);
+		$this->add_control(
+			'image_thumb',
+			[
+				'label'   => esc_html__( 'Avatar', 'themesflat-core' ),
+				'type'    => \Elementor\Controls_Manager::MEDIA,
+				'default' => [
+					'url' => URL_THEMESFLAT_ADDONS_ELEMENTOR_THEME . "assets/img/placeholder.jpg",
+				],
+			]
+		);
 
-			$this->add_control(
-				'position',
-				[
-					'label' => esc_html__( 'Position', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::TEXTAREA,					
-					'default' => esc_html__( 'Directeur associé - Cofondateur', 'themesflat-core' ),
-					'label_block' => true,
-				]
-			);
+		$this->add_control(
+			'name',
+			[
+				'label'       => esc_html__( 'Name', 'themesflat-core' ),
+				'type'        => \Elementor\Controls_Manager::TEXT,
+				'default'     => 'Renaud Boissac',
+				'label_block' => true,
+			]
+		);
 
-			$this->add_control(
-				'enable_social',
-				[
-					'label' => esc_html__( 'Enable Social', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::SWITCHER,
-					'label_on' => esc_html__( 'On', 'themesflat-core' ),
-					'label_off' => esc_html__( 'Off', 'themesflat-core' ),
-					'return_value' => 'yes',
-					'default' => 'no',
-				]
-			);
+		$this->add_control(
+			'title_tag',
+			[
+				'label'   => esc_html__( 'Name HTML Tag', 'themesflat-core' ),
+				'type'    => \Elementor\Controls_Manager::SELECT,
+				'default' => 'h3',
+				'options' => [
+					'h1' => 'H1',
+					'h2' => 'H2',
+					'h3' => 'H3',
+					'h4' => 'H4',
+					'h5' => 'H5',
+					'h6' => 'H6',
+					'div' => 'DIV',
+					'span' => 'SPAN',
+					'p' => 'P',
+				],
+			]
+		);
 
-			$repeater = new \Elementor\Repeater();
+		$this->add_control(
+			'link',
+			[
+				'label'       => esc_html__( 'Link', 'themesflat-core' ),
+				'type'        => \Elementor\Controls_Manager::URL,
+				'placeholder' => 'https://your-link.com',
+				'default'     => [
+					'url' => '#',
+					'is_external' => false,
+				],
+			]
+		);
 
-            $repeater->add_control(
-				'icon_social',
-				[
-					'label' => esc_html__( 'Icon Social', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::ICONS,
-					'fa4compatibility' => 'icon_',
-				]
-			);
+	    $this->end_controls_section();
 
-			$repeater->add_control(
-				'link',
-				[
-					'label' => esc_html__( 'Link', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::URL,
-					'placeholder' => esc_html__( 'https://your-link.com', 'themesflat-core' ),
-					'default' => [
-						'url' => '#',
-						'is_external' => false,
-						'nofollow' => false,
-					],
-				]
-			);
+		/*--------------------------------------------------------------
+		# AVATAR STYLE
+		--------------------------------------------------------------*/
+		$this->start_controls_section(
+			'section_avatar_style',
+			[
+				'label' => esc_html__( 'Avatar', 'themesflat-core' ),
+				'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+			]
+		);
 
-			$this->add_control(
-				'list',
-				[
-					'label' => esc_html__( 'List', 'themesflat-core' ),
-					'type' => \Elementor\Controls_Manager::REPEATER,
-					'fields' => $repeater->get_controls(),
-					'condition' => [
-	                    'enable_social'	=> 'yes',
-	                ],
-				]
-			);
+		$this->add_responsive_control(
+			'avatar_width',
+			[
+				'label' => esc_html__( 'Width', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::SLIDER,
+				'size_units' => [ 'px', '%' ],
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .features-avatar' => 'width: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
 
-            
-	        
-			$this->end_controls_section();
-        // /.End List Setting  
-		
+		$this->add_responsive_control(
+			'avatar_height',
+			[
+				'label' => esc_html__( 'Height', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::SLIDER,
+				'size_units' => [ 'px', '%' ],
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .features-avatar' => 'height: {{SIZE}}{{UNIT}}; object-fit: cover;',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'avatar_margin',
+			[
+				'label' => esc_html__( 'Margin', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::DIMENSIONS,
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .features-avatar' =>
+					'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'avatar_padding',
+			[
+				'label' => esc_html__( 'Padding', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::DIMENSIONS,
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .features-avatar' =>
+					'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+
+		/*--------------------------------------------------------------
+		# NAME STYLE
+		--------------------------------------------------------------*/
+		$this->start_controls_section(
+			'section_name_style',
+			[
+				'label' => esc_html__( 'Name', 'themesflat-core' ),
+				'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_group_control(
+			\Elementor\Group_Control_Typography::get_type(),
+			[
+				'name'     => 'name_typo',
+				'selector' => '{{WRAPPER}} .tf-team .team-name',
+			]
+		);
+
+		$this->add_control(
+			'name_color',
+			[
+				'label' => esc_html__( 'Color', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .team-name' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .tf-team .team-name a' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'name_hover_color',
+			[
+				'label' => esc_html__( 'Hover Color', 'themesflat-core' ),
+				'type'  => \Elementor\Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .team-name:hover' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .tf-team .team-name a:hover' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'name_margin',
+			[
+				'label'     => esc_html__( 'Margin', 'themesflat-core' ),
+				'type'      => \Elementor\Controls_Manager::DIMENSIONS,
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .team-name' =>
+					'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'name_padding',
+			[
+				'label'     => esc_html__( 'Padding', 'themesflat-core' ),
+				'type'      => \Elementor\Controls_Manager::DIMENSIONS,
+				'selectors' => [
+					'{{WRAPPER}} .tf-team .team-name' =>
+					'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
-	protected function render($instance = []) {
-		$settings = $this->get_settings_for_display();
+	// ==== RENDER ====
+	protected function render() {
+		$s = $this->get_settings_for_display();
+
+		$tag = $s['title_tag'];
+
+		$link_open = '';
+		$link_close = '';
+
+		if ( ! empty( $s['link']['url'] ) ) {
+			$this->add_render_attribute( 'team_link', 'href', $s['link']['url'] );
+			if ( $s['link']['is_external'] ) {
+				$this->add_render_attribute( 'team_link', 'target', '_blank' );
+			}
+			$link_open  = '<a '.$this->get_render_attribute_string('team_link').'>';
+			$link_close = '</a>';
+		}
 		?>
-			<div class="tf-team">
-				<div class="features-avatar">
-					<?php
-					// Display team member image
-					echo \Elementor\Group_Control_Image_Size::get_attachment_image_html( $settings, 'full', 'image_thumb' );
-				
-					// Display social icons if enabled
-					if ( ! empty( $settings['enable_social'] ) && $settings['enable_social'] === 'yes' && ! empty( $settings['list'] ) ) : ?>
-						<div class="list-social">
-							<?php foreach ( $settings['list'] as $item ) :
-								if ( empty( $item['link']['url'] ) || empty( $item['icon_social'] ) ) {
-									continue;
-								}
-								?>
-								<a href="<?php echo esc_url( $item['link']['url'] ); ?>" target="_blank" rel="noopener">
-									<?php \Elementor\Icons_Manager::render_icon( $item['icon_social'], [ 'aria-hidden' => 'true' ] ); ?>
-								</a>
-							<?php endforeach; ?>
-						</div>
-					<?php endif; ?>
-				</div>
-							
-				<div class="content">
-					<?php if ( ! empty( $settings['name'] ) ) : ?>
-						<h3><?php echo esc_html( $settings['name'] ); ?></h3>
-					<?php endif; ?>
-					
-					<?php if ( ! empty( $settings['position'] ) ) : ?>
-						<p class="position"><?php echo esc_html( $settings['position'] ); ?></p>
-					<?php endif; ?>
-				</div>
+		
+		<div class="tf-team">
+
+			<div class="features-avatar">
+				<?php
+				echo \Elementor\Group_Control_Image_Size::get_attachment_image_html( $s, 'full', 'image_thumb' );
+				?>
 			</div>
+
+			<div class="content">
+
+				<?php if ( ! empty( $s['name'] ) ) : ?>
+					<<?php echo $tag; ?> class="team-name">
+						<?php echo $link_open . esc_html( $s['name'] ) . $link_close; ?>
+					</<?php echo $tag; ?>>
+				<?php endif; ?>
+
+			</div>
+
+		</div>
 
 		<?php
 	}
-	
-
 }

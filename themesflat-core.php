@@ -158,33 +158,23 @@ final class ThemesFlat_Addon_For_Elementor_proty {
     }
 
     public function init_widgets() {
-
-        require_once( __DIR__ . '/widgets/widget-counter.php' );
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFCounter_Widget() );
-
-        require_once( __DIR__ . '/widgets/widget-gallery.php' );
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFGallery_Widget() ); 
+         require_once( __DIR__ . '/widgets/widget-button.php' );
+        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFbutton_Widget() ); 
 
         require_once( __DIR__ . '/widgets/widget-project.php' );
         \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFProject_Widget() ); 
 
-        require_once( __DIR__ . '/widgets/widget-list-icon.php' );
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFListIcon_Widget() );
-
-        require_once( __DIR__ . '/widgets/widget-history.php' );
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFHistory_Widget() );
+        require_once( __DIR__ . '/widgets/widget-image-box.php' );
+        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFImagebox_Widget() );
 
         require_once( __DIR__ . '/widgets/widget-title-description.php' );
         \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFTitleDescription_Widget() );
 
-        require_once( __DIR__ . '/widgets/widget-description.php' );
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFDescription_Widget() );
-
-        require_once( __DIR__ . '/widgets/widget-list-image-animation.php' );
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFListLogoAnimation_Widget() );
-
         require_once( __DIR__ . '/widgets/widget-team.php' );
         \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFTeam_Widget() );
+
+        require_once( __DIR__ . '/widgets/widget-list-image.php' );
+        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFListImage_Widget() );
 
     }
 
@@ -193,6 +183,9 @@ final class ThemesFlat_Addon_For_Elementor_proty {
     public function widget_styles() {
 
         //widget
+        
+        wp_register_style( 'tf-button', plugins_url( '/assets/css/button/tf-button.css', __FILE__ ) );
+        wp_register_style( 'tf-image-box', plugins_url( '/assets/css/image-box/tf-image-box.css', __FILE__ ) );
         wp_register_style( 'tf-project', plugins_url( '/assets/css/project/project.css', __FILE__ ) );
         wp_register_style( 'tf-counter', plugins_url( '/assets/css/counter/tf-counter.css', __FILE__ ) );
         wp_register_style( 'owl-carousel', plugins_url( '/assets/css/owl.carousel.min.css', __FILE__ ) );
