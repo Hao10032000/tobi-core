@@ -187,10 +187,8 @@ final class ThemesFlat_Addon_For_Elementor_proty {
         wp_register_style( 'tf-button', plugins_url( '/assets/css/button/tf-button.css', __FILE__ ) );
         wp_register_style( 'tf-image-box', plugins_url( '/assets/css/image-box/tf-image-box.css', __FILE__ ) );
         wp_register_style( 'tf-project', plugins_url( '/assets/css/project/project.css', __FILE__ ) );
-        wp_register_style( 'tf-counter', plugins_url( '/assets/css/counter/tf-counter.css', __FILE__ ) );
         wp_register_style( 'owl-carousel', plugins_url( '/assets/css/owl.carousel.min.css', __FILE__ ) );
-        wp_register_style( 'tf-gallery', plugins_url( '/assets/css/gallery/tf-gallery.css', __FILE__ ) );
-        wp_register_style( 'light-gallery', plugins_url( '/assets/css/light-gallery/light-gallery.css', __FILE__ ) );
+
 
     }
 
@@ -198,13 +196,10 @@ final class ThemesFlat_Addon_For_Elementor_proty {
 
         //3rd
         wp_register_script( 'owl-carousel', plugins_url( '/assets/js/owl.carousel.min.js', __FILE__ ), [ 'jquery' ], false, true );
-        
+     
         //widget
-        wp_register_script( 'tf-counter', plugins_url( '/assets/js/counter/tf-counter.js', __FILE__ ), [ 'jquery' ], false, true ); 
-        // wp_register_script( 'tf-gallery', plugins_url( '/assets/js/gallery/tf-gallery.js', __FILE__ ), [ 'jquery' ], false, true );
         wp_register_script( 'tf-project', plugins_url( '/assets/js/project/tf-project.js', __FILE__ ), [ 'jquery' ], false, true );
-        wp_register_script( 'light-gallery', plugins_url( '/assets/js/light-gallery.js', __FILE__ ), [ 'jquery' ], false, true );
-
+        wp_register_script( 'tf-image-list', plugins_url( '/assets/js/image-list/image-list.js', __FILE__ ), [ 'jquery' ], false, true );
         wp_register_script( 'jquery-waypoint', plugins_url( '/assets/js/waypoint.js', __FILE__ ), [ 'jquery' ], false, true );
     }
 
