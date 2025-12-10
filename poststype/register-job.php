@@ -219,4 +219,267 @@ function job_save_meta_data( $post_id ) {
     }
 }
 add_action( 'save_post', 'job_save_meta_data' );
+
 ?>
+
+<?php
+// Tên action AJAX
+define( 'JOB_AJAX_ACTION', 'filter_jobs' );
+
+/**
+ * 1. Setup the AJAX Handler (Handles filter requests)
+ */
+function job_filter_ajax_handler() {
+    // Luôn cần kiểm tra nonce cho bảo mật
+    check_ajax_referer( 'job_filter_nonce', 'security' );
+
+    // Lấy các tham số filter và pagination
+    $paged = isset( $_POST['paged'] ) ? intval( $_POST['paged'] ) : 1;
+    $region = isset( $_POST['region'] ) ? sanitize_text_field( $_POST['region'] ) : '';
+    $department = isset( $_POST['department'] ) ? sanitize_text_field( $_POST['department'] ) : '';
+    $sector = isset( $_POST['sector'] ) ? sanitize_text_field( $_POST['sector'] ) : '';
+
+    $args = job_get_query_args( $paged, $region, $department, $sector );
+    
+    // Bắt đầu query
+    $jobs_query = new WP_Query( $args );
+
+    ob_start();
+
+    if ( $jobs_query->have_posts() ) {
+        while ( $jobs_query->have_posts() ) {
+            $jobs_query->the_post();
+            // Hàm hiển thị một job item (được định nghĩa ở bước 3)
+            job_render_single_card( get_the_ID() ); 
+        }
+    } else {
+        echo '<p class="no-results">Sorry, no jobs match your criteria.</p>';
+    }
+
+    $posts_html = ob_get_clean();
+    
+    // Tạo phân trang (Pagination HTML)
+    $pagination_html = job_render_pagination( $jobs_query );
+
+    wp_reset_postdata();
+
+    // Trả về dữ liệu JSON
+    wp_send_json_success( array(
+        'posts_html' => $posts_html,
+        'pagination_html' => $pagination_html,
+        'max_pages' => $jobs_query->max_num_pages,
+        'current_page' => $paged,
+    ) );
+}
+// Ajax cho người dùng đã đăng nhập
+add_action( 'wp_ajax_' . JOB_AJAX_ACTION, 'job_filter_ajax_handler' );
+// Ajax cho người dùng chưa đăng nhập
+add_action( 'wp_ajax_nopriv_' . JOB_AJAX_ACTION, 'job_filter_ajax_handler' );
+
+
+/**
+ * 2. Shortcode initialization and Filter/Select HTML
+ */
+function job_listing_shortcode( $atts ) {
+    wp_enqueue_style( 'tf-project' );
+    wp_enqueue_script( 'job-filter-ajax' );
+
+    $args = job_get_query_args( 1 );
+    $jobs_query = new WP_Query( $args );
+
+    ob_start();
+    ?>
+    <div id="job-listing-container">
+
+        <div class="inner-header-filter">
+
+            <h2><?php echo esc_html_e('NOS OFFRES D’EMPLOI', 'themesflat-core'); ?></h2>
+
+            <div class="job-filters" id="job-filters-form">
+                <?php 
+                job_render_tax_dropdown( 'region', 'Region' );
+                job_render_tax_dropdown( 'department', 'Department' );
+                job_render_tax_dropdown( 'sector', 'Sector' );
+                ?>
+            </div>
+        </div>
+        
+        
+        <div class="job-results-wrapper" id="job-results-wrapper">
+            <?php if ( $jobs_query->have_posts() ) : ?>
+                <div id="job-results-list" class="job-grid">
+                    <?php while ( $jobs_query->have_posts() ) : $jobs_query->the_post(); ?>
+                        <?php job_render_single_card( get_the_ID() ); ?>
+                    <?php endwhile; ?>
+                </div>
+                
+                <div id="job-pagination" class="job-pagination-area">
+                    <?php echo job_render_pagination( $jobs_query ); ?>
+                </div>
+            <?php else : ?>
+                <p class="no-results"><?php echo esc_html_e('Aucun emploi trouvé.', 'themesflat-core'); ?></p>
+            <?php endif; ?>
+        </div>
+        
+        <div id="job-loading-overlay" style="display:none;"><?php echo esc_html_e('Chargement...', 'themesflat-core'); ?></div>
+
+    </div>
+    <?php
+    wp_reset_postdata();
+    return ob_get_clean();
+
+    ob_start();
+    ?>
+    <div id="job-listing-container">
+
+         <div class="inner-header-filter">
+
+            <h2><?php echo esc_html_e('NOS OFFRES D’EMPLOI', 'themesflat-core'); ?></h2>
+        
+            <div class="job-filters" id="job-filters-form">
+                <?php 
+                job_render_tax_dropdown( 'region', 'Region' );
+                job_render_tax_dropdown( 'department', 'Department' );
+                job_render_tax_dropdown( 'sector', 'Sector' );
+                ?>
+                <button type="button" id="reset-all-filters" style="display:none;"><?php echo esc_html_e('Tout réinitialiser', 'themesflat-core'); ?></button>
+            </div>
+        </div>
+        
+        </div>
+    <?php
+    wp_reset_postdata();
+    return ob_get_clean();
+}
+add_shortcode( 'job_listings', 'job_listing_shortcode' );
+
+
+/**
+ * 3. Render Functions (HTML Parts)
+ */
+
+function job_get_query_args( $paged = 1, $region = '', $department = '', $sector = '' ) {
+    $tax_query = array( 'relation' => 'AND' );
+
+    if ( ! empty( $region ) ) {
+        $tax_query[] = array( 'taxonomy' => 'region', 'field' => 'slug', 'terms' => $region );
+    }
+    if ( ! empty( $department ) ) {
+        $tax_query[] = array( 'taxonomy' => 'department', 'field' => 'slug', 'terms' => $department );
+    }
+    if ( ! empty( $sector ) ) {
+        $tax_query[] = array( 'taxonomy' => 'sector', 'field' => 'slug', 'terms' => $sector );
+    }
+
+    $args = array(
+        'post_type'      => 'job',
+        'posts_per_page' => 6, // 6 bài/trang, giống ảnh
+        'paged'          => $paged,
+        'post_status'    => 'publish',
+    );
+    
+    if ( count( $tax_query ) > 1 ) {
+        $args['tax_query'] = $tax_query;
+    }
+    
+    return $args;
+}
+
+function job_render_single_card( $post_id ) {
+    $client_info = get_post_meta( $post_id, '_job_client', true );
+    $ref_number = get_post_meta( $post_id, '_job_ref', true );
+    
+    $terms_features = wp_get_post_terms( $post_id, 'features', array( 'fields' => 'names' ) );
+    
+    $client_excerpt = $client_info;
+    $date_posted = get_the_date( 'd/m/Y', $post_id );
+    $post_permalink = get_permalink( $post_id );
+    ?>
+        <div class="job-card">
+            <h3 class="job-title">
+                <a href="<?php echo esc_url( $post_permalink ); ?>">
+                    <?php echo get_the_title( $post_id ); ?>
+                </a>
+            </h3>
+
+            <div class="job-meta">
+                <?php if ( ! empty( $date_posted ) ) : ?>
+                    <span class="meta-date"><?php echo esc_html( $date_posted ); ?></span>
+                <?php endif; ?>
+
+                <?php if ( ! empty( $ref_number ) ) : ?>
+                    | <span class="meta-ref">Ref: <?php echo esc_html( $ref_number ); ?></span>
+                <?php endif; ?>
+
+                <?php if ( ! empty( $terms_features ) && is_array( $terms_features ) ) : ?>
+                    | <span class="meta-features">
+                        <?php echo implode( ', ', array_map( 'esc_html', $terms_features ) ); ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+
+            <div class="job-content">
+                <?php 
+                if ( ! empty( $client_excerpt ) ) {
+                    echo wp_kses_post( $client_excerpt );
+                } 
+                ?>
+            </div>
+
+            <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn-view-deal">
+                En savoir plus 
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M0.27002 0V1.73H7.19995L0 8.92L1.23999 10.16L8.43994 2.97V9.9H10.17V0H0.27002Z" fill="#FF9366"/>
+                </svg>
+            </a>
+        </div>
+    <?php
+}
+
+function job_render_tax_dropdown( $taxonomy_slug, $label ) {
+    $terms = get_terms( array(
+        'taxonomy' => $taxonomy_slug,
+        'hide_empty' => true,
+    ) );
+    
+    ?>
+    <div class="filter-dropdown-wrapper">
+        <select name="<?php echo esc_attr( $taxonomy_slug ); ?>" id="<?php echo esc_attr( $taxonomy_slug ); ?>-filter" class="job-filter-select">
+            <option value=""><?php echo esc_html( $label ); ?></option>
+            <?php foreach ( $terms as $term ) : ?>
+                <option value="<?php echo esc_attr( $term->slug ); ?>"><?php echo esc_html( $term->name ); ?></option>
+            <?php endforeach; ?>
+        </select>
+        <button type="button" class="reset-single-filter" data-filter="<?php echo esc_attr( $taxonomy_slug ); ?>" style="display:none;">&times;</button> 
+    </div>
+    <?php
+}
+
+function job_render_pagination( $query ) {
+    if ( $query->max_num_pages <= 1 ) {
+        return '';
+    }
+    
+    $big = 999999999; 
+    
+    $paginate_links = paginate_links( array(
+        'base'      => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+        'format'    => '?paged=%#%',
+        'current'   => max( 1, $query->query_vars['paged'] ),
+        'total'     => $query->max_num_pages,
+        'type'      => 'array',
+        'prev_next' => false,
+    ) );
+    
+    if ( is_array( $paginate_links ) ) {
+        $output = '<ul class="pagination-list">';
+        foreach ( $paginate_links as $link ) {
+            $link = str_replace( '<a class="page-numbers"', '<a class="page-numbers ajax-page-link"', $link );
+            $link = str_replace( 'page-numbers current', 'page-numbers current active', $link );
+            $output .= '<li>' . $link . '</li>';
+        }
+        $output .= '</ul>';
+        return $output;
+    }
+    return '';
+}

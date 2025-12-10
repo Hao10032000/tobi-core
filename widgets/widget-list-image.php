@@ -479,7 +479,7 @@ class TFListImage_Widget extends \Elementor\Widget_Base {
 	}
 
 	protected function render($instance = []) {
-		$settings = $this->get_settings_for_display();
+		$settings = $this->get_settings_for_display(); ?>
 <div class="owl-carousel owl-theme">
     <div class="item">
 	<div class="image-partner">
@@ -487,7 +487,7 @@ class TFListImage_Widget extends \Elementor\Widget_Base {
 	</div>
 	</div>
 </div>
-		
+	<?php	
 	}
 
 }

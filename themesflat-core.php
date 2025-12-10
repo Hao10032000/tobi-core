@@ -202,10 +202,17 @@ final class ThemesFlat_Addon_For_Elementor_proty {
         //widget
         wp_register_script( 'tf-counter', plugins_url( '/assets/js/counter/tf-counter.js', __FILE__ ), [ 'jquery' ], false, true ); 
         // wp_register_script( 'tf-gallery', plugins_url( '/assets/js/gallery/tf-gallery.js', __FILE__ ), [ 'jquery' ], false, true );
-        wp_register_script( 'tf-project', plugins_url( '/assets/js/project/tf-project.js', __FILE__ ), [ 'jquery' ], false, true );
         wp_register_script( 'light-gallery', plugins_url( '/assets/js/light-gallery.js', __FILE__ ), [ 'jquery' ], false, true );
 
         wp_register_script( 'jquery-waypoint', plugins_url( '/assets/js/waypoint.js', __FILE__ ), [ 'jquery' ], false, true );
+
+        // job filter
+        wp_register_script( 'job-filter-ajax', plugins_url( '/assets/js/job/tf-job.js', __FILE__ ), array( 'jquery' ), null, true );
+        wp_localize_script( 'job-filter-ajax', 'jobAjax', array(
+            'ajaxurl'       => admin_url( 'admin-ajax.php' ),
+            'action'        => JOB_AJAX_ACTION, 
+            'security'      => wp_create_nonce( 'job_filter_nonce' ),
+        ) );
     }
 
     public function admin_scripts() {
@@ -532,17 +539,26 @@ final class ThemesFlat_Addon_For_Elementor_proty {
         }
 
         static function tf_get_taxonomies( $category = 'category' ){
-            $category_posts = get_terms( 
+            $category_posts = get_terms(
                 array(
                     'taxonomy' => $category,
                 )
             );
-            
-            foreach ( $category_posts as $category_post ) {
-                $category_posts_name[$category_post->slug] = $category_post->name;      
+
+            $category_posts_name = array();
+
+            if ( is_wp_error( $category_posts ) || empty( $category_posts ) ) {
+                return $category_posts_name;
             }
+
+            foreach ( $category_posts as $category_post ) {
+                if ( is_object( $category_post ) ) {
+                    $category_posts_name[$category_post->slug] = $category_post->name;
+                }
+            }
+
             return $category_posts_name;
-        }  
+        }
 
     /*========================================= 
     Rule Template
