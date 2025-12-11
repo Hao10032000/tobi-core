@@ -210,6 +210,7 @@ final class ThemesFlat_Addon_For_Elementor_proty {
 
         // job filter
         wp_register_script( 'job-filter-ajax', plugins_url( '/assets/js/job/tf-job.js', __FILE__ ), array( 'jquery' ), null, true );
+        wp_register_script( 'job-form-ajax', plugins_url( '/assets/js/job/tf-job-form.js', __FILE__ ), array( 'jquery' ), null, true );
         wp_localize_script( 'job-filter-ajax', 'jobAjax', array(
             'ajaxurl'       => admin_url( 'admin-ajax.php' ),
             'action'        => JOB_AJAX_ACTION, 

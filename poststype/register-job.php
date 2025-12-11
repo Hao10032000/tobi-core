@@ -321,7 +321,7 @@ function job_listing_shortcode( $atts ) {
             <?php endif; ?>
         </div>
         
-        <div id="job-loading-overlay" style="display:none;"><?php echo esc_html_e('Chargement...', 'themesflat-core'); ?></div>
+        <div id="job-loading-overlay" style="display:none;"></div>
 
     </div>
     <?php
@@ -483,3 +483,284 @@ function job_render_pagination( $query ) {
     }
     return '';
 }
+
+// form job
+
+// Tên action AJAX cho Form Ứng Tuyển
+define( 'JOB_APPLICATION_ACTION', 'submit_job_application' );
+
+/**
+ * Register CPT to store job applications (Submissions)
+ */
+function register_job_application_cpt() {
+    $labels = array(
+        'name'          => _x( 'Applications', 'Post Type General Name', 'text_domain' ),
+        'singular_name' => _x( 'Application', 'Post Type Singular Name', 'text_domain' ),
+        'menu_name'     => __( 'Job Applications', 'text_domain' ),
+        'all_items'     => __( 'All Applications', 'text_domain' ),
+        'add_new'       => __( 'Add New', 'text_domain' ),
+        'add_new_item'  => __( 'Add New Application', 'text_domain' ),
+        'edit_item'     => __( 'Edit Application', 'text_domain' ),
+    );
+    $args = array(
+        'label'        => __( 'Job Application', 'text_domain' ),
+        'labels'       => $labels,
+        'public'       => false, // KHÔNG HIỂN THỊ RA FRONTEND
+        'show_ui'      => true,
+        'show_in_menu' => true, // Hiển thị trên Admin Menu
+        'supports'     => array( 'title', 'editor' ), // Sử dụng title để lưu tên ứng viên và editor để lưu CV/lý do
+        'menu_icon'    => 'dashicons-id-alt',
+        'menu_position' => 25, 
+        'has_archive'  => false,
+        'capabilities' => array(
+            'create_posts' => 'do_not_allow', 
+        ),
+        'map_meta_cap' => true,
+        'map_meta_cap' => true,
+    );
+    register_post_type( 'job_application', $args );
+}
+add_action( 'init', 'register_job_application_cpt' );
+
+
+/**
+ * Setup AJAX Handler for Application Submission
+ */
+function submit_job_application_handler() {
+    // 1. Kiểm tra Nonce và bảo mật
+    if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( $_POST['security'], 'job_application_nonce' ) ) {
+        wp_send_json_error( array( 'message' => 'Security check failed.' ) );
+    }
+
+    // 2. Lấy và kiểm tra dữ liệu
+    $fields = array(
+        'job_id'       => intval( $_POST['job_id'] ),
+        'civility'     => sanitize_text_field( $_POST['civility'] ),
+        'prenom'       => sanitize_text_field( $_POST['prenom'] ),
+        'nom'          => sanitize_text_field( $_POST['nom'] ),
+        'ville'        => sanitize_text_field( $_POST['ville'] ),
+        'tel_mobile'   => sanitize_text_field( $_POST['tel_mobile'] ),
+        'email_perso'  => sanitize_email( $_POST['email_perso'] ),
+        'data_consent' => ( isset( $_POST['data_consent'] ) && $_POST['data_consent'] === 'on' ) ? 'Accepted' : 'Rejected',
+    );
+
+    if ( empty( $fields['nom'] ) || empty( $fields['email_perso'] ) || empty( $fields['job_id'] ) ) {
+        wp_send_json_error( array( 'message' => 'Required fields missing.' ) );
+    }
+
+    // 3. Xử lý File Upload (CV)
+    $cv_file_url = '';
+    if ( ! empty( $_FILES['cv_file'] ) ) {
+        if ( $_FILES['cv_file']['error'] === UPLOAD_ERR_OK ) {
+            // Tải file lên thư viện media WordPress
+            require_once( ABSPATH . 'wp-admin/includes/image.php' );
+            require_once( ABSPATH . 'wp-admin/includes/file.php' );
+            require_once( ABSPATH . 'wp-admin/includes/media.php' );
+            
+            // Chỉ chấp nhận các loại file CV thông dụng
+            $allowed_file_types = array('pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            $file_info = wp_check_filetype( basename($_FILES['cv_file']['name']), $allowed_file_types );
+
+            if ( $file_info['ext'] ) {
+                 $upload = wp_handle_upload( $_FILES['cv_file'], array( 'test_form' => false ) );
+                if ( isset( $upload['file'] ) ) {
+                    $cv_file_url = $upload['url'];
+                }
+            }
+        }
+    }
+    
+    // 4. Tạo bài đăng mới trong CPT 'job_application'
+    $post_title = $fields['nom'] . ' ' . $fields['prenom'] . ' - ' . get_the_title( $fields['job_id'] );
+    $application_content = 'CV Link: ' . ($cv_file_url ? $cv_file_url : 'None uploaded') . "\n\n" .
+                           'Job Ref: ' . get_post_meta( $fields['job_id'], '_job_ref', true ) . "\n" .
+                           'Job ID: ' . $fields['job_id'] . "\n\n" .
+                           'Data Consent: ' . $fields['data_consent'];
+
+    $new_post_id = wp_insert_post( array(
+        'post_title'   => $post_title,
+        'post_status'  => 'publish',
+        'post_type'    => 'job_application',
+        'post_content' => $application_content,
+    ) );
+    
+    // 5. Lưu tất cả các trường vào Post Meta
+    if ( ! is_wp_error( $new_post_id ) ) {
+        foreach ( $fields as $key => $value ) {
+            update_post_meta( $new_post_id, '_' . $key, $value );
+        }
+        update_post_meta( $new_post_id, '_cv_file_url', $cv_file_url );
+
+        wp_send_json_success( array( 'message' => 'Votre candidature a bien été soumise.' ) );
+    } else {
+        wp_send_json_error( array( 'message' => 'Impossible d\'enregistrer les données de l\'application.' ) );
+    }
+}
+add_action( 'wp_ajax_' . JOB_APPLICATION_ACTION, 'submit_job_application_handler' );
+add_action( 'wp_ajax_nopriv_' . JOB_APPLICATION_ACTION, 'submit_job_application_handler' );
+
+/**
+ * Enqueue Scripts and Localize Data for AJAX
+ */
+function job_popup_enqueue_scripts() {
+    if ( is_singular( 'job' ) ) {
+        wp_enqueue_script( 'job-application-ajax', get_template_directory_uri() . '/js/job-application.js', array( 'jquery' ), null, true );
+        
+        wp_localize_script( 'job-application-ajax', 'jobAppAjax', array(
+            'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+            'action'    => JOB_APPLICATION_ACTION, 
+            'security'  => wp_create_nonce( 'job_application_nonce' ),
+            'job_title' => get_the_title(),
+            'job_id'    => get_the_ID(),
+        ) );
+    }
+}
+add_action( 'wp_enqueue_scripts', 'job_popup_enqueue_scripts' );
+
+/**
+ * 1. Add Custom Meta Box to display Application Details
+ */
+function job_application_add_meta_boxes() {
+    add_meta_box(
+        'job_application_details',
+        'Application Details',
+        'job_application_details_callback',
+        'job_application',
+        'normal',
+        'high'
+    );
+    // Ẩn Editor mặc định vì nó chỉ chứa link CV và consent, không cần thiết cho việc xem nhanh
+    remove_post_type_support( 'job_application', 'editor' ); 
+}
+add_action( 'add_meta_boxes', 'job_application_add_meta_boxes' );
+
+/**
+ * 2. Render the Application Details Meta Box content
+ */
+function job_application_details_callback( $post ) {
+    $meta_data = get_post_meta( $post->ID );
+    
+    // Các key quan trọng cần hiển thị (Sử dụng tên key đã lưu trước đó)
+    $fields_to_display = array(
+        '_job_id'        => 'Applied Job Title',
+        '_civility'      => 'Civility',
+        '_nom'           => 'Last Name',
+        '_prenom'        => 'First Name',
+        '_tel_mobile'    => 'Mobile Phone',
+        '_email_perso'   => 'Personal Email',
+        '_ville'         => 'City',
+        '_cv_file_url'   => 'CV File Link',
+        '_data_consent'  => 'Data Consent',
+    );
+    
+    echo '<table class="form-table">';
+    
+    // Hiển thị ngày tạo đơn ứng tuyển
+    $post_date = get_the_date('Y-m-d H:i:s', $post->ID);
+    echo '<tr><th>Submission Date</th><td>' . esc_html($post_date) . '</td></tr>';
+
+    foreach ( $fields_to_display as $key => $label ) {
+        $value = isset( $meta_data[$key][0] ) ? $meta_data[$key][0] : 'N/A';
+        
+        echo '<tr>';
+        echo '<th>' . esc_html( $label ) . '</th>';
+        echo '<td>';
+        
+        if ( $key === '_job_id' ) {
+            // Hiển thị Title của Job thay vì chỉ ID
+            $job_title = get_the_title( $value );
+            $job_link = get_edit_post_link( $value );
+            echo '<a href="' . esc_url($job_link) . '">' . esc_html( $job_title ) . ' (ID: ' . esc_html($value) . ')</a>';
+        } elseif ( $key === '_cv_file_url' && ! empty( $value ) && $value !== 'None uploaded' ) {
+            // Hiển thị link tải CV
+            echo '<a href="' . esc_url( $value ) . '" target="_blank">Download CV</a>';
+        } else {
+            echo esc_html( $value );
+        }
+        
+        echo '</td>';
+        echo '</tr>';
+    }
+    
+    echo '</table>';
+    
+}
+
+/**
+ * 4. Add Custom Columns to Application List
+ */
+function job_application_set_columns( $columns ) {
+    $new_columns = array();
+    $new_columns['cb'] = $columns['cb'];
+    $new_columns['title'] = 'Applicant Name'; // Đổi tên cột Title
+    $new_columns['job_applied'] = 'Applied For Job'; // Tên Job ứng tuyển
+    $new_columns['applicant_email'] = 'Email';
+    $new_columns['applicant_mobile'] = 'Mobile';
+    $new_columns['cv_status'] = 'CV Uploaded';
+    $new_columns['date'] = 'Submission Date';
+
+    return $new_columns;
+}
+add_filter( 'manage_job_application_posts_columns', 'job_application_set_columns' );
+
+/**
+ * 5. Display data in the custom columns
+ */
+function job_application_custom_column( $column, $post_id ) {
+    switch ( $column ) {
+        case 'job_applied':
+            $job_id = get_post_meta( $post_id, '_job_id', true );
+            if ( $job_id ) {
+                echo '<a href="' . get_edit_post_link( $job_id ) . '">' . esc_html( get_the_title( $job_id ) ) . '</a>';
+            } else {
+                echo 'N/A';
+            }
+            break;
+            
+        case 'applicant_email':
+            echo esc_html( get_post_meta( $post_id, '_email_perso', true ) );
+            break;
+
+        case 'applicant_mobile':
+            echo esc_html( get_post_meta( $post_id, '_tel_mobile', true ) );
+            break;
+            
+        case 'cv_status':
+            $cv_url = get_post_meta( $post_id, '_cv_file_url', true );
+            if ( ! empty( $cv_url ) && $cv_url !== 'None uploaded' ) {
+                echo '<span style="color: green; font-weight: bold;">Yes</span> (<a href="' . esc_url( $cv_url ) . '" target="_blank">Download</a>)';
+            } else {
+                echo '<span style="color: red;">No</span>';
+            }
+            break;
+    }
+}
+add_action( 'manage_job_application_posts_custom_column', 'job_application_custom_column', 10, 2 );
+
+/**
+ * 6. Make Job Applied column sortable (Optional but Recommended)
+ */
+function job_application_sortable_columns( $columns ) {
+    $columns['job_applied'] = 'job_applied';
+    $columns['applicant_email'] = 'applicant_email';
+    return $columns;
+}
+add_filter( 'manage_edit-job_application_sortable_columns', 'job_application_sortable_columns' );
+
+
+function my_render_elementor_template_shortcode( $atts ) {
+    $atts = shortcode_atts( [
+        'id' => '',
+    ], $atts );
+
+    if ( empty( $atts['id'] ) ) {
+        return '';
+    }
+
+    if ( ! class_exists( '\Elementor\Plugin' ) ) {
+        return '<!-- Elementor plugin not active -->';
+    }
+
+    return \Elementor\Plugin::instance()->frontend->get_builder_content_for_display( $atts['id'] );
+}
+add_shortcode( 'my_elementor_template', 'my_render_elementor_template_shortcode' );
