@@ -176,6 +176,9 @@ final class ThemesFlat_Addon_For_Elementor_proty {
         require_once( __DIR__ . '/widgets/widget-list-image.php' );
         \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFListImage_Widget() );
 
+         require_once( __DIR__ . '/widgets/widget-text-list.php' );
+        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFTextList_Widget() );
+
     }
 
     public function init_controls() {}    
