@@ -1,5 +1,6 @@
 <?php
 wp_enqueue_style( 'tf-project');
+wp_enqueue_script( 'job-form-ajax' );
 get_header(); 
 
 ?>
@@ -41,14 +42,18 @@ get_header();
 	
 	
 											<div class="content">
+												<?php if (!empty($client_info)): ?>
 												<div class="inner">
 													<h2><?php echo esc_html_e('Client', 'themesflat-core'); ?></h2>
 													<?php echo $client_info; ?>
 												</div>
+												<?php endif;?>
+												<?php if (!empty($profil_info)): ?>
 												<div class="inner">
 													<h2><?php echo esc_html_e('Profil', 'themesflat-core'); ?></h2>
 													<?php echo $profil_info; ?>
 												</div>
+												<?php endif;?>
 											</div>
 									</div>
 	
@@ -56,13 +61,18 @@ get_header();
 										<div class="information-box">
 											<h3><?php echo esc_html_e('Informations :', 'themesflat-core'); ?></h3>
 											<ul>
+												<?php if (!empty($ref)): ?>
 												<li><?php echo $ref; ?></li>
+												<?php endif;?>
 												<li><?php echo get_the_date( 'm/d/Y' );?></li>
 											</ul>
 										</div>
-										<a href="#" class="btn-goback"> <?php echo esc_html_e('Postuler', 'themesflat-core'); ?> <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
-	<path d="M0.27002 0V1.73H7.19995L0 8.92L1.23999 10.16L8.43994 2.97V9.9H10.17V0H0.27002Z" fill="#FF9366"/>
-	</svg> </a>
+										<button id="open-application-popup" class="btn-goback"> 
+    <?php echo esc_html_e('Postuler', 'themesflat-core'); ?> 
+    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="#FF9366">
+        <path d="M0.27002 0V1.73H7.19995L0 8.92L1.23999 10.16L8.43994 2.97V9.9H10.17V0H0.27002Z"/>
+    </svg> 
+</button>
 									</div>
 	
 										
@@ -85,6 +95,84 @@ get_header();
 
 	</div>
 
+</div>
+
+<div id="job-application-modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content-wrapper">
+        <button class="modal-close-btn" id="close-application-popup">&times;</button>
+        
+        <div class="modal-header">
+            <h2 id="modal-title"><?php echo esc_html_e('Candidature pour : Directeur général des services mutualisé', 'themesflat-core'); ?></h2>
+        </div>
+        
+        <form id="job-application-form" enctype="multipart/form-data">
+            
+            <input type="hidden" name="action" value="<?php echo JOB_APPLICATION_ACTION; ?>">
+            <input type="hidden" name="security" id="job-app-nonce" value="<?php echo wp_create_nonce('job_application_nonce'); ?>">
+            <input type="hidden" name="job_id" id="job-id-field" value="<?php echo get_the_ID(); ?>">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="civility"><?php echo esc_html_e('Civilité', 'themesflat-core'); ?></label>
+                    <input type="text" name="civility" id="civility" placeholder="Civilité" required>
+                </div>
+                <div class="form-group">
+                    <label for="prenom"><?php echo esc_html_e('Prénom', 'themesflat-core'); ?></label>
+                    <input type="text" name="prenom" id="prenom" placeholder="Prénom" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nom"><?php echo esc_html_e('Nom', 'themesflat-core'); ?></label>
+                    <input type="text" name="nom" id="nom" placeholder="Nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="ville"><?php echo esc_html_e('Ville', 'themesflat-core'); ?></label>
+                    <input type="text" name="ville" id="ville" placeholder="Ville">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tel_mobile"><?php echo esc_html_e('Tél mobile', 'themesflat-core'); ?></label>
+                    <input type="number" name="tel_mobile" id="tel_mobile" placeholder="Tél mobile">
+                </div>
+                <div class="form-group">
+                    <label for="email_perso"><?php echo esc_html_e('Email perso', 'themesflat-core'); ?></label>
+                    <input type="email" name="email_perso" id="email_perso" placeholder="Email perso" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="cv_file"><?php echo esc_html_e('CV.', 'themesflat-core'); ?></label>
+                    <input type="file" name="cv_file" id="cv_file" accept=".pdf,.doc,.docx" class="cv-file-input">
+                    </div>
+            </div>
+
+            <div class="data-protection">
+                <input type="checkbox" name="data_consent" id="data_consent" required checked>
+				<div class="inner">
+					<label for="data_consent" class="label-consent">
+						En cochant cette case, vous reconnaissez avoir pris connaissance et accepter sans réserve les 
+						<a href="#">Conditions Générales d'Utilisation</a> ainsi que la 
+						<a href="#">Protection des Données Personnelles.</a>
+					</label>
+					<p class="gdpr-text">
+						Les données à caractère personnel recueillies font l’objet d’un traitement informatique par notre cabinet afin de gérer votre candidature. Conformément à la loi n°78-17 du 6 janvier 1978, vous bénéficiez d’un droit d’accès, de rectification et de suppression aux données à caractère personnel qui vous concernent ainsi que d’un droit d’opposition pour des motifs légitimes au traitement de ces données. Vous pouvez exercer ces droits en vous adressant à l’adresse suivante : XXXXX
+					</p>
+				</div>
+            </div>
+            
+            <div class="form-messages" id="form-messages" style="margin-top: 15px;"></div>
+
+            <button type="submit" class="btn-postuler-submit">Postuler <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
+<path d="M0.27002 0V1.73H7.19995L0 8.92L1.23999 10.16L8.43994 2.97V9.9H10.17V0H0.27002Z" fill="#FF9366"/>
+</svg></button>
+        </form>
+    </div>
 </div>
 
 

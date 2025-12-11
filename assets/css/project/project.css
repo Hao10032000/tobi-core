@@ -155,7 +155,11 @@ border: 2px solid #9EA8D5;
     align-items: center;
     gap: 13px;
     flex-wrap: wrap;
-    margin-bottom: 47px;
+    justify-content: right;
+}
+
+#job-listing-container .inner-header-filter {
+    margin-bottom: 45px;
 }
 
 #job-listing-container  .filter-dropdown-wrapper {
@@ -191,15 +195,17 @@ border: 2px solid #9EA8D5;
 }
 
 .job-results-wrapper .job-card {
-    border: 1px solid #777777;
+border: 1px solid #777777;
     border-radius: 8px;
-    padding: 33px 30px;
+    padding: 31px 30px;
+    padding-bottom: 28px;
 }
 
 .job-results-wrapper .job-card .job-title {
 font-weight: 700;
 font-size: 24px;
 line-height: 30px;
+    margin-bottom: 11px;
 }
 
 .job-results-wrapper .job-card .job-title a {
@@ -211,6 +217,7 @@ font-weight: 400;
 font-size: 14px;
 line-height: 17px;
 color: #6E6E6E;
+margin-bottom: 10px;
 }
 
 .job-results-wrapper .job-content {
@@ -222,4 +229,280 @@ color: #000;
 
 .job-results-wrapper .job-content ul {
     list-style: disc;
+        display: -webkit-box;
+    -webkit-line-clamp: 8;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.job-results-wrapper .btn-view-deal {
+    border: 2px solid #3357FD;
+    padding: 3px 16px;
+    border-radius: 64px;
+    background: #fff;
+    color: #3357FD;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-family: 'Myriad Pro';
+    font-weight: 400;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+    display: inline-flex;
+    float: right;
+    margin-top: -7px;
+}
+
+.job-results-wrapper .btn-view-deal:hover {
+    color: #FF9366;
+    background: #3357FD;
+}
+
+.job-pagination-area .pagination-list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 43px;
+}
+
+.job-pagination-area .pagination-list .page-numbers {
+    border: 1px solid #777777;
+    width: 32px;
+    height: 32px;
+    font-weight: 400;
+    font-size: 13px;
+    color: #777777;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.job-pagination-area .pagination-list .page-numbers:hover,
+.job-pagination-area .pagination-list .page-numbers.active {
+    background: #FF9366;
+    border-color: #FF9366;
+    color: #fff;
+}
+
+/* job form */
+
+/* Modal Wrapper (Popup) */
+#job-application-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+}
+
+#job-application-modal .form-messages {
+    text-align: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #424759b6;
+}
+
+.modal-content-wrapper {
+    position: relative;
+    background: #fff;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 600px; /* Chiều rộng phù hợp với hình ảnh */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    overflow-y: auto; /* Cho phép cuộn nếu form dài */
+    max-height: 90vh;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+    line-height: 1;
+    color: #333;
+}
+
+/* Form Layout */
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.form-group.full-width {
+    flex: 0 0 100%;
+}
+
+.form-group label {
+font-weight: 400;
+font-size: 14px;
+line-height: 17.41px;
+color: #424759;
+margin-bottom: 3px;
+}
+
+.form-group input[type="number"],
+.form-group input[type="text"],
+.form-group input[type="file"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select {
+    padding: 10px;
+    border: 1px solid #9EA8D5;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19.48px;
+    color: #000;
+}
+
+.form-group input[type="number"]::placeholder,
+.form-group input[type="text"]::placeholder,
+.form-group input[type="email"]::placeholder,
+.form-group input[type="tel"]::placeholder {
+        font-weight: 400;
+    font-size: 16px;
+    line-height: 19.48px;
+    color: #9EA8D5;
+}
+
+.data-protection {
+    display: flex;
+    gap: 10px;
+}
+
+.data-protection .inner {
+        margin-top: -4px;
+}
+
+.data-protection .label-consent {
+font-weight: 700;
+font-size: 16px;
+line-height: 21px;
+color: #424759;
+}
+
+.data-protection .label-consent a {
+    color: #3357FD;
+}
+
+/* Data Protection Section */
+.data-protection {
+    margin-top: 20px;
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+
+.data-protection label {
+    font-weight: normal;
+    display: inline;
+}
+
+.gdpr-text {
+font-weight: 400;
+font-size: 14px;
+line-height: 17.64px;
+color: #424759;
+}
+
+.data-protection input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 1px;
+    flex-shrink: 0;
+}
+
+/* Submit Button */
+.btn-postuler-submit {
+    width: 100%;
+    padding: 15px;
+    margin-top: 25px;
+    background-color: #4169e1;
+    color: #fff;
+    border: none;
+    border-radius: 64px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    font-family: 'Myriad Pro';
+font-weight: 400;
+font-size: 24px;
+letter-spacing: 1px;
+
+}
+
+.btn-postuler-submit:hover {
+    background: #111;
+}
+
+.btn-postuler-submit .arrow-icon {
+    margin-left: 8px;
+    font-size: 1.2em;
+}
+
+#job-application-modal #modal-title {
+font-weight: 700;
+font-size: 32px;
+line-height: 41px;
+}
+
+/* Responsive fixes */
+
+@media (max-width: 991px) {
+    #job-listing-container .inner-header-filter h2 {
+        font-size: 30px;
+    }
+    #job-listing-container .inner-header-filter {
+        margin-bottom: 30px;
+    }
+    .job-results-wrapper .job-card {
+        padding: 25px;
+    }
+    .job-results-wrapper .job-grid {
+        gap: 25px;
+    }
+}
+
+@media (max-width: 767px) {
+        #job-listing-container .inner-header-filter {
+        flex-direction: column;
+    }
+    #job-listing-container .job-filters {
+    justify-content: center;
+}
+.job-results-wrapper .job-grid {
+    grid-template-columns: 1fr;
+}
+}
+
+@media (max-width: 650px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
 }

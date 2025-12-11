@@ -1,97 +1,77 @@
 <?php
 
-get_header();
-wp_enqueue_script( 'owl-carousel');
-wp_enqueue_style( 'owl-carousel');
-wp_enqueue_style( 'tf-project');
-wp_enqueue_script( 'tf-project');
+get_header(); 
+wp_enqueue_style( 'tf-project' );
+if ( ! function_exists( 'job_render_single_card' ) ) {
+    function job_render_single_card( $post_id ) {
+        $client_info = get_post_meta( $post_id, '_job_client', true );
+        $client_excerpt = wp_trim_words( strip_tags( $client_info ), 30, '...' );
+        $date_posted = get_the_date( 'd/m/Y', $post_id );
+        $post_permalink = get_permalink( $post_id );
+        ?>
+        <div class="job-card">
+            <h3 class="job-title"><a href="<?php echo esc_url( $post_permalink ); ?>"><?php echo get_the_title( $post_id ); ?></a></h3>
+            <div class="job-meta">
+                <span class="meta-date"><?php echo $date_posted; ?></span> 
+            </div>
+            <div class="job-content">
+                <?php echo wp_kses_post( $client_excerpt ); ?>
+            </div>
+            <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn-view-deal">En savoir plus &rarr;</a>
+        </div>
+        <?php
+    }
+}
 
-$term_slug = $wp_query->tax_query->queries[0]['terms'][0];
+$queried_object = get_queried_object();
+$taxonomy_name = '';
+$term_name = 'Jobs';
 
-$project_number_post = -1;
-
-$args = array(
-    'post_type'      => 'project',
-    'paged'          => $paged,
-    'posts_per_page' => $project_number_post,
-    'tax_query'      => array(
-        array(
-            'taxonomy' => 'project_category',
-            'field'    => 'slug',
-            'terms'    => $term_slug
-        ),
-    ),
-);
-
-$query = new WP_Query($args);
+if ( $queried_object && is_a( $queried_object, 'WP_Term' ) ) {
+    $taxonomy_name = get_taxonomy( $queried_object->taxonomy )->labels->singular_name;
+    $term_name = $queried_object->name;
+}
 ?>
 
-<div class="themesflat-project-taxonomy project-page">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="wrap-content-area">
-                    <div id="primary" class="content-area">
-                        <main id="main" class="main-content" role="main">
+<div class="container job-taxonomy-container">
 
-                            <div class="group-archive-project">
+    <header class="page-header">
+        <h1 class="page-title"><?php echo esc_html( $taxonomy_name ); ?>: <?php echo esc_html( $term_name ); ?></h1>
+        <?php 
+        $term_description = term_description();
+        if ( $term_description ) {
+            echo '<div class="taxonomy-description">' . $term_description . '</div>';
+        }
+        ?>
+    </header>
 
-                            <div class="tf-project-wrap">
-    <div class="wrap-project-post">
-        <div  class="swiper slider-project">
-            <div class="owl-carousel" data-bullets="yes" data-spacer="8" data-loop="false" data-auto="false" data-column="2" data-column2="2" data-column3="2">
-                <?php 
-                if ($query->have_posts()) {
-                    while ($query->have_posts()) : $query->the_post(); ?>
-                        <div class="swiper-slide">
-                            <div class="item">
-                                <div class="project-post scale-hover">
-                                    <div class="featured-post">
-                                        <a href="<?php echo get_the_permalink(); ?>">
-                                            <?php 
-                                            if (has_post_thumbnail()) {
-                                                $themesflat_thumbnail = "full";
-                                                the_post_thumbnail($themesflat_thumbnail);
-                                            }
-                                            ?>
-                                        </a>
-                                    </div>
-                                    <div class="content"> 
-                                        <div class="project-category">
-                                            <?php 
-                                            echo get_the_term_list( get_the_ID(), 'project_category', '', ', ' ); 
-                                            ?>
-                                        </div>
-                                        <h5 class="title border_eff">
-                                            <a href="<?php echo get_the_permalink(); ?>"><?php echo get_the_title(); ?></a>
-                                        </h5>
-                                        <div class="description"><?php echo wp_trim_words( get_the_content(), 4, '' ); ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endwhile;
-                } else {
-                    get_template_part('template-parts/content', 'none');
-                }
-                ?>
-            </div>
-        </div>
-    </div>
-    <?php 
-    themesflat_pagination_posttype($query);
-    wp_reset_postdata();
-    ?>
-</div>
+    <div id="primary" class="content-area">
+        <main id="main" class="site-main job-results-wrapper" role="main">
 
+            <?php if ( have_posts() ) : ?>
 
-                            </div>
-                        </main>
-                    </div>
+                <div class="job-grid taxonomy-job-grid">
+                    <?php 
+                    while ( have_posts() ) : the_post(); 
+                        job_render_single_card( get_the_ID() );
+                    endwhile; 
+                    ?>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<?php get_footer(); ?>
+                <div class="archive-pagination">
+                    <?php
+                    the_posts_pagination( array(
+                        'prev_text' => __( 'Previous', 'text_domain' ),
+                        'next_text' => __( 'Next', 'text_domain' ),
+                        'screen_reader_text' => 'Job Pagination'
+                    ) );
+                    ?>
+                </div>
+
+            <?php else : ?>
+
+                <p class="no-results">Sorry, no jobs found for this category.</p>
+
+            <?php endif; ?>
+
+        </main></div></div><?php get_footer(); ?>
