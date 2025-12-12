@@ -161,9 +161,6 @@ final class ThemesFlat_Addon_For_Elementor_proty {
          require_once( __DIR__ . '/widgets/widget-button.php' );
         \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFbutton_Widget() ); 
 
-        require_once( __DIR__ . '/widgets/widget-project.php' );
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFProject_Widget() ); 
-
         require_once( __DIR__ . '/widgets/widget-image-box.php' );
         \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \TFImagebox_Widget() );
 
