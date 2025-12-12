@@ -188,6 +188,7 @@ get_header();
     </div>
 </div>
 
-
+<?php 
+echo do_shortcode('[my_elementor_template id=1668]'); ?>
 
 <?php get_footer(); ?>

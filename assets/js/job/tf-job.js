@@ -94,13 +94,24 @@ jQuery(document).ready(function ($) {
         performAjaxFilter(1);
     });
 
-    paginationArea.on('click', '.ajax-page-link', function (e) {
+    paginationArea.on('click', '.ajax-page-link', function(e) {
         e.preventDefault();
-
+        
         const url = $(this).attr('href');
-        const match = url.match(/paged=(\d+)/);
-        const newPage = match ? parseInt(match[1]) : 1;
+        
+        let newPage = 1;
 
+        if (url) {
+            let match = url.match(/[?&]paged=(\d+)/);
+            if (!match) {
+                match = url.match(/\/page\/(\d+)/);
+            }
+            
+            if (match && match[1]) {
+                newPage = parseInt(match[1]);
+            }
+        }
+        
         if (newPage) {
             performAjaxFilter(newPage);
         }
