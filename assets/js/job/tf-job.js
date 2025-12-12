@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+jQuery(document).ready(function ($) {
     const container = $('#job-results-wrapper');
     const resultsList = $('#job-results-list');
     const paginationArea = $('#job-pagination');
@@ -26,7 +26,7 @@ jQuery(document).ready(function($) {
                 department: departmentVal,
                 sector: sectorVal
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     resultsList.html(response.data.posts_html);
                     paginationArea.html(response.data.pagination_html);
@@ -35,12 +35,12 @@ jQuery(document).ready(function($) {
                     paginationArea.empty();
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error("AJAX Error: ", status, error);
                 resultsList.html('<p class="no-results">Failed to load jobs due to a network error.</p>');
                 paginationArea.empty();
             },
-            complete: function() {
+            complete: function () {
                 loadingOverlay.hide();
                 resultsList.css('opacity', 1);
                 $('html, body').animate({
@@ -49,16 +49,16 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    
+
     // --- NEW LOGIC: RESET BUTTONS ---
-    
+
     function updateResetButtons() {
         let hasFilterSelected = false;
 
-        filterSelects.each(function() {
+        filterSelects.each(function () {
             const selectElement = $(this);
             const resetBtn = selectElement.closest('.filter-dropdown-wrapper').find('.reset-single-filter');
-            
+
             if (selectElement.val() !== '') {
                 resetBtn.show();
                 hasFilterSelected = true;
@@ -74,38 +74,57 @@ jQuery(document).ready(function($) {
         }
     }
 
-    filterForm.on('change', '.job-filter-select', function() {
-        updateResetButtons(); 
-        performAjaxFilter(1); 
+    filterForm.on('change', '.job-filter-select', function () {
+        updateResetButtons();
+        performAjaxFilter(1);
     });
-    
-    filterForm.on('click', '.reset-single-filter', function() {
-        const filterName = $(this).data('filter'); 
+
+    filterForm.on('click', '.reset-single-filter', function () {
+        const filterName = $(this).data('filter');
         const selectElement = $(`#${filterName}-filter`);
-        
-        selectElement.val(''); 
-        selectElement.trigger('change'); 
+
+        selectElement.val('');
+        selectElement.trigger('change');
     });
 
-    resetButtonAll.on('click', function() {
-        filterSelects.val(''); 
-        
-        updateResetButtons(); 
-        performAjaxFilter(1); 
+    resetButtonAll.on('click', function () {
+        filterSelects.val('');
+
+        updateResetButtons();
+        performAjaxFilter(1);
     });
 
-    paginationArea.on('click', '.ajax-page-link', function(e) {
+    paginationArea.on('click', '.ajax-page-link', function (e) {
         e.preventDefault();
-        
+
         const url = $(this).attr('href');
         const match = url.match(/paged=(\d+)/);
         const newPage = match ? parseInt(match[1]) : 1;
-        
+
         if (newPage) {
             performAjaxFilter(newPage);
         }
     });
-    
+
     updateResetButtons();
 
 });
+
+jQuery(document).ready(function ($) {
+    $(".filter-dropdown-wrapper select").each(function () {
+        var firstText = $(this).find("option:first").text();
+        var niceSelect = $(this).next(".nice-select");
+        if (niceSelect.length) {
+            niceSelect.find(".current").text(firstText);
+        }
+    });
+    $('select').on('change', function () {
+        if ($(this).val() !== "") {
+            $(this).next('.nice-select').addClass('has-value');
+        } else {
+            $(this).next('.nice-select').removeClass('has-value');
+        }
+    });
+});
+
+

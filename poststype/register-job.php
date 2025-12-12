@@ -67,15 +67,6 @@ function create_job_taxonomies() {
         );
     }
 
-    // Taxonomy: Features
-    register_taxonomy( 'features', array( 'job' ), array(
-        'hierarchical'      => true,
-        'labels'            => get_tax_labels('Features', 'Feature'),
-        'show_ui'           => true,
-        'show_admin_column' => true,
-        'query_var'         => true,
-        'rewrite'           => array( 'slug' => 'features' ),
-    ));
 
     // Taxonomy: Sector
     register_taxonomy( 'sector', array( 'job' ), array(
@@ -126,7 +117,7 @@ function job_add_meta_boxes() {
     // Client Info Metabox (Normal position for large editor)
     add_meta_box(
         'job_client_meta',
-        'Client Information',
+        'Description Job',
         'job_client_callback',
         'job',
         'normal',
@@ -136,7 +127,7 @@ function job_add_meta_boxes() {
     // Profil Info Metabox (Normal position for large editor)
     add_meta_box(
         'job_profil_meta',
-        'Profil Information',
+        'Single Job',
         'job_profil_callback',
         'job',
         'normal',
@@ -388,15 +379,22 @@ function job_get_query_args( $paged = 1, $region = '', $department = '', $sector
 function job_render_single_card( $post_id ) {
     $client_info = get_post_meta( $post_id, '_job_client', true );
     $ref_number = get_post_meta( $post_id, '_job_ref', true );
-    
-    $terms_features = wp_get_post_terms( $post_id, 'features', array( 'fields' => 'names' ) );
+    $terms_department = wp_get_post_terms( $post_id, 'department', array( 'fields' => 'names' ) );
+    $terms_sector = wp_get_post_terms( $post_id, 'sector', array( 'fields' => 'names' ) );
     
     $client_excerpt = $client_info;
     $date_posted = get_the_date( 'd/m/Y', $post_id );
     $post_permalink = get_permalink( $post_id );
     ?>
         <div class="job-card">
+            <img class="image-list1" src="<?php echo esc_url( plugins_url( 'assets/img/list1.png', dirname(__FILE__) ) ); ?>" alt="">
+            <img class="image-list2" src="<?php echo esc_url( plugins_url( 'assets/img/list2.png', dirname(__FILE__) ) ); ?>" alt="">
             <h3 class="job-title">
+                <div class="icon">
+                    <svg width="22" height="17" viewBox="0 0 22 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <path d="M12.528 16.0802C12.16 16.0802 11.808 15.9682 11.472 15.7442C11.136 15.5362 10.856 15.2642 10.632 14.9282C10.424 14.5922 10.32 14.2562 10.32 13.9202C10.32 13.5362 10.48 13.1282 10.8 12.6962C11.12 12.2642 11.496 11.8402 11.928 11.4242C12.376 10.9922 12.768 10.6242 13.104 10.3202H3.192C2.28 10.3202 1.632 10.2482 1.248 10.1042C0.864001 9.96023 0.560001 9.72023 0.336001 9.38423C0.112001 9.06423 1.04308e-06 8.61623 1.04308e-06 8.04023C1.04308e-06 7.46423 0.104001 7.01623 0.312001 6.69623C0.536001 6.37623 0.840001 6.13623 1.224 5.97623C1.608 5.83223 2.264 5.76023 3.192 5.76023H13.104L11.928 4.63223C11.272 3.99223 10.84 3.50423 10.632 3.16823C10.424 2.81623 10.32 2.48023 10.32 2.16023C10.32 1.82423 10.424 1.48823 10.632 1.15223C10.84 0.816234 11.112 0.544233 11.448 0.336233C11.8 0.112233 12.16 0.000233173 12.528 0.000233173C12.848 0.000233173 13.192 0.104233 13.56 0.312233C13.928 0.504234 14.36 0.840234 14.856 1.32023L21.768 8.04023L15 14.6162C14.424 15.1602 13.952 15.5362 13.584 15.7442C13.216 15.9682 12.864 16.0802 12.528 16.0802Z" fill="black"/>
+                    </svg>
+                </div>
                 <a href="<?php echo esc_url( $post_permalink ); ?>">
                     <?php echo get_the_title( $post_id ); ?>
                 </a>
@@ -410,10 +408,14 @@ function job_render_single_card( $post_id ) {
                 <?php if ( ! empty( $ref_number ) ) : ?>
                     | <span class="meta-ref">Ref: <?php echo esc_html( $ref_number ); ?></span>
                 <?php endif; ?>
-
-                <?php if ( ! empty( $terms_features ) && is_array( $terms_features ) ) : ?>
+                <?php if ( ! empty( $terms_department ) && is_array( $terms_department ) ) : ?>
                     | <span class="meta-features">
-                        <?php echo implode( ', ', array_map( 'esc_html', $terms_features ) ); ?>
+                        <?php echo implode( ', ', array_map( 'esc_html', $terms_department ) ); ?>
+                    </span>
+                <?php endif; ?>
+                <?php if ( ! empty( $terms_sector ) && is_array( $terms_sector ) ) : ?>
+                    | <span class="meta-features">
+                        <?php echo implode( ', ', array_map( 'esc_html', $terms_sector ) ); ?>
                     </span>
                 <?php endif; ?>
             </div>
@@ -426,12 +428,24 @@ function job_render_single_card( $post_id ) {
                 ?>
             </div>
 
-            <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn-view-deal">
-                En savoir plus 
-                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <path d="M0.27002 0V1.73H7.19995L0 8.92L1.23999 10.16L8.43994 2.97V9.9H10.17V0H0.27002Z" fill="#FF9366"/>
-                </svg>
-            </a>
+            <a class="tf-button" href="<?php echo esc_url( $post_permalink ); ?>">
+
+                            <span class="tf-button__text">
+                              En savoir plus</span>
+                            <span class="button__icon-wrapper">
+                                <span class="button__icon-svg">
+                                    <svg viewBox="0 0 14 15" fill="currentColor" width="10">
+                                        <path d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z">
+                                        </path>
+                                    </svg>
+                                </span> <span class="button__icon-svg button__icon-svg--copy">
+                                    <svg viewBox="0 0 14 15" fill="currentColor" width="10">
+                                        <path d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z">
+                                        </path>
+                                    </svg>
+                                </span> </span>
+
+                        </a>
         </div>
     <?php
 }
