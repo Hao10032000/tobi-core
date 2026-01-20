@@ -538,15 +538,13 @@ add_action( 'init', 'register_job_application_cpt' );
 
 
 /**
- * Setup AJAX Handler for Application Submission
+ * Cập nhật AJAX Handler để gửi Email sau khi lưu dữ liệu
  */
 function submit_job_application_handler() {
-    // 1. Kiểm tra Nonce và bảo mật
     if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( $_POST['security'], 'job_application_nonce' ) ) {
         wp_send_json_error( array( 'message' => 'Security check failed.' ) );
     }
 
-    // 2. Lấy và kiểm tra dữ liệu
     $fields = array(
         'job_id'       => intval( $_POST['job_id'] ),
         'civility'     => sanitize_text_field( $_POST['civility'] ),
@@ -558,56 +556,80 @@ function submit_job_application_handler() {
         'data_consent' => ( isset( $_POST['data_consent'] ) && $_POST['data_consent'] === 'on' ) ? 'Accepted' : 'Rejected',
     );
 
-    if ( empty( $fields['nom'] ) || empty( $fields['email_perso'] ) || empty( $fields['job_id'] ) ) {
-        wp_send_json_error( array( 'message' => 'Required fields missing.' ) );
-    }
+    $job_title = get_the_title( $fields['job_id'] );
+    $candidate_name = $fields['prenom'] . ' ' . $fields['nom'];
 
-    // 3. Xử lý File Upload (CV)
+    $attachments = array(); // Mảng chứa đường dẫn file vật lý để gửi mail
     $cv_file_url = '';
-    if ( ! empty( $_FILES['cv_file'] ) ) {
-        if ( $_FILES['cv_file']['error'] === UPLOAD_ERR_OK ) {
-            // Tải file lên thư viện media WordPress
-            require_once( ABSPATH . 'wp-admin/includes/image.php' );
-            require_once( ABSPATH . 'wp-admin/includes/file.php' );
-            require_once( ABSPATH . 'wp-admin/includes/media.php' );
-            
-            // Chỉ chấp nhận các loại file CV thông dụng
-            $allowed_file_types = array('pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-            $file_info = wp_check_filetype( basename($_FILES['cv_file']['name']), $allowed_file_types );
 
-            if ( $file_info['ext'] ) {
-                 $upload = wp_handle_upload( $_FILES['cv_file'], array( 'test_form' => false ) );
-                if ( isset( $upload['file'] ) ) {
-                    $cv_file_url = $upload['url'];
-                }
-            }
+    if ( ! empty( $_FILES['cv_file'] ) && $_FILES['cv_file']['error'] === UPLOAD_ERR_OK ) {
+        require_once( ABSPATH . 'wp-admin/includes/file.php' );
+        $upload = wp_handle_upload( $_FILES['cv_file'], array( 'test_form' => false ) );
+        
+        if ( isset( $upload['file'] ) ) {
+            $attachments[] = $upload['file']; // Đường dẫn file vật lý trên server (để đính kèm mail)
+            $cv_file_url = $upload['url'];   // URL để lưu vào database
         }
     }
-    
-    // 4. Tạo bài đăng mới trong CPT 'job_application'
-    $post_title = $fields['nom'] . ' ' . $fields['prenom'] . ' - ' . get_the_title( $fields['job_id'] );
-    $application_content = 'CV Link: ' . ($cv_file_url ? $cv_file_url : 'None uploaded') . "\n\n" .
-                           'Job Ref: ' . get_post_meta( $fields['job_id'], '_job_ref', true ) . "\n" .
-                           'Job ID: ' . $fields['job_id'] . "\n\n" .
-                           'Data Consent: ' . $fields['data_consent'];
 
+    $post_title = $candidate_name . ' - ' . $job_title;
     $new_post_id = wp_insert_post( array(
         'post_title'   => $post_title,
         'post_status'  => 'publish',
         'post_type'    => 'job_application',
-        'post_content' => $application_content,
     ) );
-    
-    // 5. Lưu tất cả các trường vào Post Meta
+
     if ( ! is_wp_error( $new_post_id ) ) {
-        foreach ( $fields as $key => $value ) {
-            update_post_meta( $new_post_id, '_' . $key, $value );
-        }
+        update_post_meta( $new_post_id, '_job_id', $fields['job_id'] );
+        update_post_meta( $new_post_id, '_civility', $fields['civility'] );
+        update_post_meta( $new_post_id, '_prenom', $fields['prenom'] );
+        update_post_meta( $new_post_id, '_nom', $fields['nom'] );
+        update_post_meta( $new_post_id, '_ville', $fields['ville'] );
+        update_post_meta( $new_post_id, '_tel_mobile', $fields['tel_mobile'] );
+        update_post_meta( $new_post_id, '_email_perso', $fields['email_perso'] );
         update_post_meta( $new_post_id, '_cv_file_url', $cv_file_url );
 
-        wp_send_json_success( array( 'message' => 'Votre candidature a bien été soumise.' ) );
+
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+
+        $subject_candidate = "Confirmation de votre candidature – " . $job_title;
+        $body_candidate = "
+            <p>Bonjour {$fields['prenom']},</p>
+            <p>Nous vous confirmons la bonne réception de votre candidature pour le poste <strong>{$job_title}</strong>.</p>
+            <p>Notre équipe va étudier votre profil avec attention.<br>
+            Si votre candidature est retenue pour la suite du processus, nous vous recontacterons.</p>
+            <p>Merci pour l’intérêt que vous portez à notre cabinet.</p>
+            <p>Cordialement,<br>Cabinet Tobi</p>
+        ";
+        wp_mail( $fields['email_perso'], $subject_candidate, $body_candidate, $headers );
+
+        $to_admin = 'huycuongytam@gmail.com';
+        $admin_headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'Cc: themesflatc10@gmail.com'
+        );
+        $subject_admin = "Nouvelle candidature – " . $job_title;
+        $body_admin = "
+            <p>Bonjour,</p>
+            <p>Une nouvelle candidature a été soumise pour le poste <strong>{$job_title}</strong>.</p>
+            <p><strong>Informations candidat :</strong></p>
+            <ul>
+                <li>Civilité : {$fields['civility']}</li>
+                <li>Prénom : {$fields['prenom']}</li>
+                <li>Nom : {$fields['nom']}</li>
+                <li>Ville : {$fields['ville']}</li>
+                <li>Téléphone : {$fields['tel_mobile']}</li>
+                <li>Email : {$fields['email_perso']}</li>
+            </ul>
+            <p>Le CV du candidat est joint à cet email.</p>
+            <p>Cordialement,<br>Le site</p>
+        ";
+        
+        wp_mail( $to_admin, $subject_admin, $body_admin, $admin_headers, $attachments );
+
+        wp_send_json_success( array( 'message' => 'Your application has been successfully submitted.' ) );
     } else {
-        wp_send_json_error( array( 'message' => 'Impossible d\'enregistrer les données de l\'application.' ) );
+        wp_send_json_error( array( 'message' => 'Failed to save application.' ) );
     }
 }
 add_action( 'wp_ajax_' . JOB_APPLICATION_ACTION, 'submit_job_application_handler' );
