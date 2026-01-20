@@ -24,6 +24,8 @@ get_header();
 							$client_info = get_post_meta( get_the_ID(), '_job_client', true );
 							$profil_info = get_post_meta( get_the_ID(), '_job_profil', true );
 							$ref = get_post_meta( get_the_ID(), '_job_ref', true );
+                            $inf = get_post_meta( get_the_ID(), '_job_inf', true );
+                            $date = get_post_meta( get_the_ID(), '_job_date', true );
 						?>
                             <div class="single-content-job-over">
 
@@ -63,7 +65,7 @@ get_header();
                                             <h3><?php echo esc_html_e('Informations :', 'themesflat-core'); ?></h3>
                                             <ul>
                                                 <?php if (!empty($ref)): ?>
-                                                <li><?php echo $ref; ?></li>
+                                                <li>Ref: <?php echo $ref; ?></li>
                                                 <?php endif;?>
                                                 <li><?php echo get_the_date( 'm/d/Y' );?></li>
                                             </ul>
@@ -154,7 +156,8 @@ get_header();
             <div class="form-row">
                 <div class="form-group full-width">
                     <label for="cv_file"><?php echo esc_html_e('CV.', 'themesflat-core'); ?></label>
-                    <input type="file" name="cv_file" id="cv_file" accept=".pdf,.doc,.docx" class="cv-file-input" required>
+                    <input type="file" name="cv_file" id="cv_file" accept=".pdf,.doc,.docx" class="cv-file-input"
+                        required>
                 </div>
             </div>
 
@@ -166,14 +169,20 @@ get_header();
                         <a href="#">Conditions Générales d'Utilisation</a> ainsi que la
                         <a href="#">Protection des Données Personnelles.</a>
                     </label>
-                    <p class="gdpr-text">
-                        Les données à caractère personnel recueillies font l’objet d’un traitement informatique par
-                        notre cabinet afin de gérer votre candidature. Conformément à la loi n°78-17 du 6 janvier 1978,
-                        vous bénéficiez d’un droit d’accès, de rectification et de suppression aux données à caractère
-                        personnel qui vous concernent ainsi que d’un droit d’opposition pour des motifs légitimes au
-                        traitement de ces données. Vous pouvez exercer ces droits en vous adressant à l’adresse suivante
-                        : XXXXX
-                    </p>
+                    <div class="gdpr-text-wrap">
+                        <div class="gdpr-title">En savoir plus</div>
+                        <p class="gdpr-text">
+                            Les données à caractère personnel recueillies font l’objet d’un traitement informatique par
+                            notre cabinet afin de gérer votre candidature. Conformément à la loi n°78-17 du 6 janvier
+                            1978,
+                            vous bénéficiez d’un droit d’accès, de rectification et de suppression aux données à
+                            caractère
+                            personnel qui vous concernent ainsi que d’un droit d’opposition pour des motifs légitimes au
+                            traitement de ces données. Vous pouvez exercer ces droits en vous adressant à l’adresse
+                            suivante
+                            : Renaud [a] tobi-rh.com
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -189,6 +198,6 @@ get_header();
 </div>
 
 <?php 
-echo do_shortcode('[my_elementor_template id=1668]'); ?>
+echo do_shortcode('[my_elementor_template id=2181]'); ?>
 
 <?php get_footer(); ?>

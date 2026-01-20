@@ -15,11 +15,11 @@
 .icon-title-wrap {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     background: #7FB297;
     border-radius: 100px;
-    padding: 5px 20px;
-    margin-bottom: 7px;
+        padding: 2px 21px 2px 11px;
+    margin-bottom: 4px;
 }
 .icon-title-wrap .tf-imagebox-title {
     font-weight: 600;
@@ -32,9 +32,9 @@
 
 .icon-title-wrap i,
 .icon-title-wrap svg {
-	  font-size: 23px;
+	  font-size: 21px;
     color: #FF9366;
-    width: 23px;
+    width: 21px;
     transition: all 0.3s ease-in-out;
 }
 .icon-title-wrap svg path{
@@ -42,14 +42,17 @@
 }
 
 .tf-imagebox-item .desc {
-    margin-top: 10px;
+    margin-top: 0px;
     margin-bottom: 30px;
     font-size: 18px;
     line-height: 23.23px;
 }
 
 .tf-imagebox-item .image  {
-   text-align: center;
+  text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .tf-imagebox-item .image img{
    -webkit-transition: all 0.3s cubic-bezier(0.5, 1, 0.89, 1);
@@ -64,6 +67,10 @@
     transform: translateX(4px);
 }
 @media (max-width: 600px) {
-.tf-col-3 { grid-template-columns: repeat(1, 1fr); }
-
+.tf-col-3 { grid-template-columns: repeat(1, 1fr);
+     gap: 40px;
+ }
+ .tf-imagebox-item {
+    text-align: center;
+}
 }

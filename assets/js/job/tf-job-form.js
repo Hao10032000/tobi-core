@@ -73,3 +73,9 @@ jQuery(document).ready(function($) {
         });
     });
 });
+jQuery(document).ready(function ($) {
+    $('.gdpr-title').on('click', function () {
+        $(this).next('.gdpr-text').slideToggle(300);
+        $(this).toggleClass('active');
+    });
+});

@@ -71,7 +71,7 @@ function create_job_taxonomies() {
     // Taxonomy: Sector
     register_taxonomy( 'sector', array( 'job' ), array(
         'hierarchical'      => true,
-        'labels'            => get_tax_labels('Sectors', 'Sector'),
+        'labels'            => get_tax_labels('Secteur', 'Secteur'),
         'show_ui'           => true,
         'show_admin_column' => true,
         'query_var'         => true,
@@ -81,7 +81,7 @@ function create_job_taxonomies() {
     // Taxonomy: Region
     register_taxonomy( 'region', array( 'job' ), array(
         'hierarchical'      => true,
-        'labels'            => get_tax_labels('Regions', 'Region'),
+        'labels'            => get_tax_labels('Région', 'Région'),
         'show_ui'           => true,
         'show_admin_column' => true,
         'query_var'         => true,
@@ -91,7 +91,7 @@ function create_job_taxonomies() {
     // Taxonomy: Department
     register_taxonomy( 'department', array( 'job' ), array(
         'hierarchical'      => true,
-        'labels'            => get_tax_labels('Departments', 'Department'),
+        'labels'            => get_tax_labels('Département', 'Département'),
         'show_ui'           => true,
         'show_admin_column' => true,
         'query_var'         => true,
@@ -288,9 +288,9 @@ function job_listing_shortcode( $atts ) {
 
             <div class="job-filters" id="job-filters-form">
                 <?php 
-                job_render_tax_dropdown( 'region', 'Region' );
-                job_render_tax_dropdown( 'department', 'Department' );
-                job_render_tax_dropdown( 'sector', 'Sector' );
+                job_render_tax_dropdown( 'region', 'Région' );
+                job_render_tax_dropdown( 'department', 'Département ' );
+                job_render_tax_dropdown( 'sector', 'Secteur' );
                 ?>
             </div>
         </div>
