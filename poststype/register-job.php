@@ -581,6 +581,16 @@ function submit_job_application_handler() {
 
 if ( ! is_wp_error( $new_post_id ) ) {
 
+        update_post_meta( $new_post_id, 'job_id', $fields['job_id'] );
+        update_post_meta( $new_post_id, 'civility', $fields['civility'] );
+        update_post_meta( $new_post_id, 'prenom', $fields['prenom'] );
+        update_post_meta( $new_post_id, 'nom', $fields['nom'] );
+        update_post_meta( $new_post_id, 'ville', $fields['ville'] );
+        update_post_meta( $new_post_id, 'tel_mobile', $fields['tel_mobile'] );
+        update_post_meta( $new_post_id, 'email_perso', $fields['email_perso'] );
+        update_post_meta( $new_post_id, 'cv_file_url', $cv_file_url );
+        update_post_meta( $new_post_id, 'data_consent', $fields['data_consent'] );
+
         $placeholders = array(
             '[job_title]'            => get_the_title($fields['job_id']),
             '[candidate_name]'       => $fields['prenom'] . ' ' . $fields['nom'],
@@ -615,9 +625,9 @@ if ( ! is_wp_error( $new_post_id ) ) {
         $body_admin = wpautop($body_admin);
 
         $specific_cc = get_post_meta( $fields['job_id'], '_job_cc_email', true );
-        $cc_recipient = (!empty($specific_cc) && is_email($specific_cc)) ? $specific_cc : 'renaud@tobi-rh.com';
+        $cc_recipient = (!empty($specific_cc) && is_email($specific_cc)) ? $specific_cc : 'huycuongytam@gmail.com';
 
-        $to_admin = 'barnabe@milsabor.com';
+        $to_admin = 'huycuongytam@gmail.com';
         $admin_headers = array(
             'Content-Type: text/html; charset=UTF-8',
             'Cc: ' . $cc_recipient
@@ -672,53 +682,65 @@ add_action( 'add_meta_boxes', 'job_application_add_meta_boxes' );
  * 2. Render the Application Details Meta Box content
  */
 function job_application_details_callback( $post ) {
-    $meta_data = get_post_meta( $post->ID );
-    
-    // Các key quan trọng cần hiển thị (Sử dụng tên key đã lưu trước đó)
+    // Lấy dữ liệu theo các key đã thống nhất
     $fields_to_display = array(
-        '_job_id'        => 'Applied Job Title',
-        '_civility'      => 'Civility',
-        '_nom'           => 'Last Name',
-        '_prenom'        => 'First Name',
-        '_tel_mobile'    => 'Mobile Phone',
-        '_email_perso'   => 'Personal Email',
-        '_ville'         => 'City',
-        '_cv_file_url'   => 'CV File Link',
-        '_data_consent'  => 'Data Consent',
+        'job_id'        => 'Applied Job Title',
+        'civility'      => 'Civility',
+        'nom'           => 'Last Name',
+        'prenom'        => 'First Name',
+        'tel_mobile'    => 'Mobile Phone',
+        'email_perso'   => 'Personal Email',
+        'ville'         => 'City',
+        'cv_file_url'   => 'CV File Link',
+        'data_consent'  => 'Data Consent',
     );
     
-    echo '<table class="form-table">';
-    
-    // Hiển thị ngày tạo đơn ứng tuyển
-    $post_date = get_the_date('Y-m-d H:i:s', $post->ID);
-    echo '<tr><th>Submission Date</th><td>' . esc_html($post_date) . '</td></tr>';
-
+    echo '<table class="form-table" style="background: #f9f9f9; padding: 15px; border-radius: 5px;">';
     foreach ( $fields_to_display as $key => $label ) {
-        $value = isset( $meta_data[$key][0] ) ? $meta_data[$key][0] : 'N/A';
+        $value = get_post_meta( $post->ID, $key, true );
+        $value = $value ? $value : 'N/A';
         
         echo '<tr>';
-        echo '<th>' . esc_html( $label ) . '</th>';
-        echo '<td>';
+        echo '<th style="width: 200px; color: #555;">' . esc_html( $label ) . '</th>';
+        echo '<td style="font-weight: 500;">';
         
-        if ( $key === '_job_id' ) {
-            // Hiển thị Title của Job thay vì chỉ ID
-            $job_title = get_the_title( $value );
-            $job_link = get_edit_post_link( $value );
-            echo '<a href="' . esc_url($job_link) . '">' . esc_html( $job_title ) . ' (ID: ' . esc_html($value) . ')</a>';
-        } elseif ( $key === '_cv_file_url' && ! empty( $value ) && $value !== 'None uploaded' ) {
-            // Hiển thị link tải CV
-            echo '<a href="' . esc_url( $value ) . '" target="_blank">Download CV</a>';
+        if ( $key === 'job_id' && $value !== 'N/A' ) {
+            echo '<a href="' . get_edit_post_link( $value ) . '" target="_blank">' . get_the_title( $value ) . '</a>';
+        } elseif ( $key === 'cv_file_url' && $value !== 'N/A' ) {
+            echo '<a href="' . esc_url( $value ) . '" class="button button-small" target="_blank">Download CV</a>';
         } else {
             echo esc_html( $value );
         }
-        
-        echo '</td>';
-        echo '</tr>';
+        echo '</td></tr>';
     }
-    
     echo '</table>';
-    
 }
+
+function customize_job_app_row_actions( $actions, $post ) {
+    if ( $post->post_type === 'job_application' ) {
+        if ( isset( $actions['edit'] ) ) {
+            $actions['edit'] = str_replace( 'Edit', 'Afficher les détails', $actions['edit'] );
+        }
+        
+        unset( $actions['inline hide-if-no-js'] );
+        
+        unset( $actions['view'] );
+    }
+    return $actions;
+}
+add_filter( 'post_row_actions', 'customize_job_app_row_actions', 10, 2 );
+
+function customize_job_app_publish_box() {
+    global $post;
+    if ( $post && $post->post_type === 'job_application' ) {
+        echo '<style>
+            #major-publishing-actions { padding: 10px; }
+            #publish { width: 100%; height: 40px; }
+            .preview.button { display: none; } /* Ẩn nút xem thử */
+        </style>';
+    }
+}
+add_action( 'admin_head', 'customize_job_app_publish_box' );
 
 /**
  * 4. Add Custom Columns to Application List
@@ -737,34 +759,29 @@ function job_application_set_columns( $columns ) {
 }
 add_filter( 'manage_job_application_posts_columns', 'job_application_set_columns' );
 
-/**
- * 5. Display data in the custom columns
- */
 function job_application_custom_column( $column, $post_id ) {
     switch ( $column ) {
         case 'job_applied':
-            $job_id = get_post_meta( $post_id, '_job_id', true );
+            $job_id = get_post_meta( $post_id, 'job_id', true ); 
             if ( $job_id ) {
-                echo '<a href="' . get_edit_post_link( $job_id ) . '">' . esc_html( get_the_title( $job_id ) ) . '</a>';
-            } else {
-                echo 'N/A';
+                echo '<strong>' . esc_html( get_the_title( $job_id ) ) . '</strong>';
             }
             break;
             
         case 'applicant_email':
-            echo esc_html( get_post_meta( $post_id, '_email_perso', true ) );
+            echo esc_html( get_post_meta( $post_id, 'email_perso', true ) );
             break;
 
         case 'applicant_mobile':
-            echo esc_html( get_post_meta( $post_id, '_tel_mobile', true ) );
+            echo esc_html( get_post_meta( $post_id, 'tel_mobile', true ) );
             break;
             
         case 'cv_status':
-            $cv_url = get_post_meta( $post_id, '_cv_file_url', true );
-            if ( ! empty( $cv_url ) && $cv_url !== 'None uploaded' ) {
-                echo '<span style="color: green; font-weight: bold;">Yes</span> (<a href="' . esc_url( $cv_url ) . '" target="_blank">Download</a>)';
+            $cv_url = get_post_meta( $post_id, 'cv_file_url', true );
+            if ( $cv_url ) {
+                echo '<a href="' . esc_url( $cv_url ) . '" target="_blank" style="color: green;">View CV</a>';
             } else {
-                echo '<span style="color: red;">No</span>';
+                echo '<span style="color: #ccc;">No CV</span>';
             }
             break;
     }
