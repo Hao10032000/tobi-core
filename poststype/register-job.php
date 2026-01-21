@@ -537,13 +537,13 @@ function register_job_application_cpt() {
 add_action( 'init', 'register_job_application_cpt' );
 
 
-/**
- * Cập nhật AJAX Handler để gửi Email sau khi lưu dữ liệu
- */
 function submit_job_application_handler() {
     if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( $_POST['security'], 'job_application_nonce' ) ) {
         wp_send_json_error( array( 'message' => 'Security check failed.' ) );
     }
+
+    $job_id = intval( $_POST['job_id'] );
+    $job_title = get_the_title( $job_id );
 
     $fields = array(
         'job_id'       => intval( $_POST['job_id'] ),
@@ -559,7 +559,7 @@ function submit_job_application_handler() {
     $job_title = get_the_title( $fields['job_id'] );
     $candidate_name = $fields['prenom'] . ' ' . $fields['nom'];
 
-    $attachments = array(); // Mảng chứa đường dẫn file vật lý để gửi mail
+    $attachments = array(); 
     $cv_file_url = '';
 
     if ( ! empty( $_FILES['cv_file'] ) && $_FILES['cv_file']['error'] === UPLOAD_ERR_OK ) {
@@ -567,8 +567,8 @@ function submit_job_application_handler() {
         $upload = wp_handle_upload( $_FILES['cv_file'], array( 'test_form' => false ) );
         
         if ( isset( $upload['file'] ) ) {
-            $attachments[] = $upload['file']; // Đường dẫn file vật lý trên server (để đính kèm mail)
-            $cv_file_url = $upload['url'];   // URL để lưu vào database
+            $attachments[] = $upload['file']; 
+            $cv_file_url = $upload['url'];  
         }
     }
 
@@ -579,53 +579,51 @@ function submit_job_application_handler() {
         'post_type'    => 'job_application',
     ) );
 
-    if ( ! is_wp_error( $new_post_id ) ) {
-        update_post_meta( $new_post_id, '_job_id', $fields['job_id'] );
-        update_post_meta( $new_post_id, '_civility', $fields['civility'] );
-        update_post_meta( $new_post_id, '_prenom', $fields['prenom'] );
-        update_post_meta( $new_post_id, '_nom', $fields['nom'] );
-        update_post_meta( $new_post_id, '_ville', $fields['ville'] );
-        update_post_meta( $new_post_id, '_tel_mobile', $fields['tel_mobile'] );
-        update_post_meta( $new_post_id, '_email_perso', $fields['email_perso'] );
-        update_post_meta( $new_post_id, '_cv_file_url', $cv_file_url );
+if ( ! is_wp_error( $new_post_id ) ) {
 
+        $placeholders = array(
+            '[job_title]'            => get_the_title($fields['job_id']),
+            '[candidate_name]'       => $fields['prenom'] . ' ' . $fields['nom'],
+            '[candidate_first_name]' => $fields['prenom'],
+            '[candidate_last_name]'  => $fields['nom'],
+            '[candidate_civility]'   => $fields['civility'],
+            '[candidate_email]'      => $fields['email_perso'],
+            '[candidate_phone]'      => $fields['tel_mobile'],
+            '[candidate_city]'       => $fields['ville'],
+        );
+
+        $keys = array_keys($placeholders);
+        $values = array_values($placeholders);
 
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
-        $subject_candidate = "Confirmation de votre candidature – " . $job_title;
-        $body_candidate = "
-            <p>Bonjour {$fields['prenom']},</p>
-            <p>Nous vous confirmons la bonne réception de votre candidature pour le poste <strong>{$job_title}</strong>.</p>
-            <p>Notre équipe va étudier votre profil avec attention.<br>
-            Si votre candidature est retenue pour la suite du processus, nous vous recontacterons.</p>
-            <p>Merci pour l’intérêt que vous portez à notre cabinet.</p>
-            <p>Cordialement,<br>Cabinet Tobi</p>
-        ";
-        wp_mail( $fields['email_perso'], $subject_candidate, $body_candidate, $headers );
+        $raw_cand_subject = get_option('job_candidate_email_subject', 'Confirmation de votre candidature – [job_title]');
+        $raw_cand_body    = get_option('job_candidate_email_body', 'Bonjour [candidate_first_name]...');
+        
+        $subj_candidate = str_replace($keys, $values, $raw_cand_subject);
+        $body_candidate = str_replace($keys, $values, $raw_cand_body);
+        $body_candidate = wpautop($body_candidate);
 
-        $to_admin = 'huycuongytam@gmail.com';
+        wp_mail( $fields['email_perso'], $subj_candidate, $body_candidate, $headers );
+
+
+        $raw_admin_subject = get_option('job_admin_email_subject', 'Nouvelle candidature – [job_title]');
+        $raw_admin_body    = get_option('job_admin_email_body', 'Bonjour, một ứng viên mới...');
+
+        $subj_admin = str_replace($keys, $values, $raw_admin_subject);
+        $body_admin = str_replace($keys, $values, $raw_admin_body);
+        $body_admin = wpautop($body_admin);
+
+        $specific_cc = get_post_meta( $fields['job_id'], '_job_cc_email', true );
+        $cc_recipient = (!empty($specific_cc) && is_email($specific_cc)) ? $specific_cc : 'renaud@tobi-rh.com';
+
+        $to_admin = 'barnabe@milsabor.com';
         $admin_headers = array(
             'Content-Type: text/html; charset=UTF-8',
-            'Cc: themesflatc10@gmail.com'
+            'Cc: ' . $cc_recipient
         );
-        $subject_admin = "Nouvelle candidature – " . $job_title;
-        $body_admin = "
-            <p>Bonjour,</p>
-            <p>Une nouvelle candidature a été soumise pour le poste <strong>{$job_title}</strong>.</p>
-            <p><strong>Informations candidat :</strong></p>
-            <ul>
-                <li>Civilité : {$fields['civility']}</li>
-                <li>Prénom : {$fields['prenom']}</li>
-                <li>Nom : {$fields['nom']}</li>
-                <li>Ville : {$fields['ville']}</li>
-                <li>Téléphone : {$fields['tel_mobile']}</li>
-                <li>Email : {$fields['email_perso']}</li>
-            </ul>
-            <p>Le CV du candidat est joint à cet email.</p>
-            <p>Cordialement,<br>Le site</p>
-        ";
-        
-        wp_mail( $to_admin, $subject_admin, $body_admin, $admin_headers, $attachments );
+
+        wp_mail( $to_admin, $subj_admin, $body_admin, $admin_headers, $attachments );
 
         wp_send_json_success( array( 'message' => 'Your application has been successfully submitted.' ) );
     } else {
@@ -800,3 +798,109 @@ function my_render_elementor_template_shortcode( $atts ) {
     return \Elementor\Plugin::instance()->frontend->get_builder_content_for_display( $atts['id'] );
 }
 add_shortcode( 'my_elementor_template', 'my_render_elementor_template_shortcode' );
+
+/**
+ * 1. Thêm Meta Box "Email CC" vào Custom Post Type 'job'
+ */
+function job_add_cc_email_metabox() {
+    add_meta_box(
+        'job_cc_email_meta',
+        'Paramètres de l’email de notification (CC)',
+        'job_cc_email_metabox_callback',
+        'job', // Áp dụng cho post type 'job'
+        'side', // Hiển thị ở cột bên phải
+        'default'
+    );
+}
+add_action( 'add_meta_boxes', 'job_add_cc_email_metabox' );
+
+function job_cc_email_metabox_callback( $post ) {
+    $cc_email = get_post_meta( $post->ID, '_job_cc_email', true );
+    ?>
+    <p>
+        <label for="job_cc_email">Email de réception des notifications (CC)</label>
+        <input type="email" id="job_cc_email" name="job_cc_email" value="<?php echo esc_attr( $cc_email ); ?>" style="width:100%;" placeholder="EX: abc@gmail.com" />
+    </p>
+    <p class="description">Si ce champ est laissé vide, le système enverra par défaut à: renaud@tobi-rh.com</p>
+    <?php
+}
+
+function job_save_cc_email_meta( $post_id ) {
+    if ( array_key_exists( 'job_cc_email', $_POST ) ) {
+        update_post_meta( $post_id, '_job_cc_email', sanitize_email( $_POST['job_cc_email'] ) );
+    }
+}
+add_action( 'save_post', 'job_save_cc_email_meta' );
+
+/**
+ * 1. Tạo menu "Email Settings" dưới Job Applications
+ */
+function job_app_email_settings_menu() {
+    add_submenu_page(
+        'edit.php?post_type=job_application',
+        'Email Settings',
+        'Email Settings',
+        'manage_options',
+        'job-email-settings',
+        'job_app_email_settings_callback'
+    );
+}
+add_action('admin_menu', 'job_app_email_settings_menu');
+
+/**
+ * 2. Giao diện trang cài đặt
+ */
+function job_app_email_settings_callback() {
+    // Lưu dữ liệu nếu có bấm Save
+    if ( isset($_POST['save_email_templates']) ) {
+        update_option('job_candidate_email_subject', sanitize_text_field($_POST['candidate_subject']));
+        update_option('job_candidate_email_body', wp_kses_post(stripslashes($_POST['candidate_body'])));
+        update_option('job_admin_email_subject', sanitize_text_field($_POST['admin_subject']));
+        update_option('job_admin_email_body', wp_kses_post(stripslashes($_POST['admin_body'])));
+        echo '<div class="updated"><p>Settings saved!</p></div>';
+    }
+
+    // Lấy dữ liệu đã lưu
+    $candidate_subject = get_option('job_candidate_email_subject', 'Confirmation de votre candidature – [job_title]');
+    $candidate_body = get_option('job_candidate_email_body', '');
+    $admin_subject = get_option('job_admin_email_subject', 'Nouvelle candidature – [job_title]');
+    $admin_body = get_option('job_admin_email_body', '');
+    ?>
+    <div class="wrap">
+        <h1>Email Templates Settings</h1>
+        <p>Sử dụng các thẻ sau để thay thế nội dung tự động: <code>[job_title]</code>, <code>[candidate_name]</code>, <code>[candidate_first_name]</code>, <code>[candidate_last_name]</code>, <code>[candidate_civility]</code>, <code>[candidate_email]</code>, <code>[candidate_phone]</code>, <code>[candidate_city]</code></p>
+        
+        <form method="post">
+            <hr>
+            <h2>1. Email gửi cho Ứng viên</h2>
+            <table class="form-table">
+                <tr>
+                    <th>Subject</th>
+                    <td><input type="text" name="candidate_subject" value="<?php echo esc_attr($candidate_subject); ?>" class="large-text"></td>
+                </tr>
+                <tr>
+                    <th>Body</th>
+                    <td><?php wp_editor($candidate_body, 'candidate_body'); ?></td>
+                </tr>
+            </table>
+
+            <hr>
+            <h2>2. Email gửi cho Admin & CC</h2>
+            <table class="form-table">
+                <tr>
+                    <th>Subject</th>
+                    <td><input type="text" name="admin_subject" value="<?php echo esc_attr($admin_subject); ?>" class="large-text"></td>
+                </tr>
+                <tr>
+                    <th>Body</th>
+                    <td><?php wp_editor($admin_body, 'admin_body'); ?></td>
+                </tr>
+            </table>
+
+            <p class="submit">
+                <input type="submit" name="save_email_templates" class="button button-primary" value="Save Changes">
+            </p>
+        </form>
+    </div>
+    <?php
+}
