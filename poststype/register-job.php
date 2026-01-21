@@ -625,9 +625,9 @@ if ( ! is_wp_error( $new_post_id ) ) {
         $body_admin = wpautop($body_admin);
 
         $specific_cc = get_post_meta( $fields['job_id'], '_job_cc_email', true );
-        $cc_recipient = (!empty($specific_cc) && is_email($specific_cc)) ? $specific_cc : 'huycuongytam@gmail.com';
+        $cc_recipient = (!empty($specific_cc) && is_email($specific_cc)) ? $specific_cc : 'renaud@tobi-rh.com';
 
-        $to_admin = 'huycuongytam@gmail.com';
+        $to_admin = 'barnabe@milsabor.com';
         $admin_headers = array(
             'Content-Type: text/html; charset=UTF-8',
             'Cc: ' . $cc_recipient
