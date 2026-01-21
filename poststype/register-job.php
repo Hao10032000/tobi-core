@@ -625,9 +625,13 @@ if ( ! is_wp_error( $new_post_id ) ) {
         $body_admin = wpautop($body_admin);
 
         $specific_cc = get_post_meta( $fields['job_id'], '_job_cc_email', true );
-        $cc_recipient = (!empty($specific_cc) && is_email($specific_cc)) ? $specific_cc : 'renaud@tobi-rh.com';
+        if ( ! empty( $specific_cc ) && is_email( $specific_cc ) ) {
+            $cc_recipient = $specific_cc;
+        } else {
+            $cc_recipient = get_option('job_default_cc_email', 'renaud@tobi-rh.com');
+        }
 
-        $to_admin = 'barnabe@milsabor.com';
+        $to_admin = get_option('job_admin_recipient_email', 'barnabe@milsabor.com');
         $admin_headers = array(
             'Content-Type: text/html; charset=UTF-8',
             'Cc: ' . $cc_recipient
@@ -865,31 +869,60 @@ function job_app_email_settings_menu() {
 add_action('admin_menu', 'job_app_email_settings_menu');
 
 /**
- * 2. Giao diện trang cài đặt
+ * Cập nhật giao diện trang cài đặt với thêm 2 trường Email người nhận
  */
 function job_app_email_settings_callback() {
     // Lưu dữ liệu nếu có bấm Save
     if ( isset($_POST['save_email_templates']) ) {
+        // Lưu thông tin người nhận
+        update_option('job_admin_recipient_email', sanitize_email($_POST['admin_recipient_email']));
+        update_option('job_default_cc_email', sanitize_email($_POST['default_cc_email']));
+        
+        // Lưu template (giữ nguyên phần cũ)
         update_option('job_candidate_email_subject', sanitize_text_field($_POST['candidate_subject']));
         update_option('job_candidate_email_body', wp_kses_post(stripslashes($_POST['candidate_body'])));
         update_option('job_admin_email_subject', sanitize_text_field($_POST['admin_subject']));
         update_option('job_admin_email_body', wp_kses_post(stripslashes($_POST['admin_body'])));
-        echo '<div class="updated"><p>Settings saved!</p></div>';
+        
+        echo '<div class="updated"><p>Cài đặt đã được lưu thành công!</p></div>';
     }
 
-    // Lấy dữ liệu đã lưu
+    // Lấy dữ liệu đã lưu (nếu trống thì lấy giá trị mặc định cũ)
+    $admin_recipient = get_option('job_admin_recipient_email', 'barnabe@milsabor.com');
+    $default_cc      = get_option('job_default_cc_email', 'renaud@tobi-rh.com');
+    
     $candidate_subject = get_option('job_candidate_email_subject', 'Confirmation de votre candidature – [job_title]');
-    $candidate_body = get_option('job_candidate_email_body', '');
-    $admin_subject = get_option('job_admin_email_subject', 'Nouvelle candidature – [job_title]');
-    $admin_body = get_option('job_admin_email_body', '');
+    $candidate_body    = get_option('job_candidate_email_body', '');
+    $admin_subject     = get_option('job_admin_email_subject', 'Nouvelle candidature – [job_title]');
+    $admin_body       = get_option('job_admin_email_body', '');
     ?>
     <div class="wrap">
-        <h1>Email Templates Settings</h1>
-        <p>Sử dụng các thẻ sau để thay thế nội dung tự động: <code>[job_title]</code>, <code>[candidate_name]</code>, <code>[candidate_first_name]</code>, <code>[candidate_last_name]</code>, <code>[candidate_civility]</code>, <code>[candidate_email]</code>, <code>[candidate_phone]</code>, <code>[candidate_city]</code></p>
-        
+        <h1>Paramètres des emails et notifications</h1>
         <form method="post">
+            
+            <div class="card" style="max-width: 100%; margin-top: 20px; padding: 15px;">
+                <h2>1. Configuration des destinataires des notifications</h2>
+                <table class="form-table">
+                    <tr>
+                        <th>Email administrateur principal (To)</th>
+                        <td>
+                            <input type="email" name="admin_recipient_email" value="<?php echo esc_attr($admin_recipient); ?>" class="regular-text" required>
+                            <p class="description">Email principal recevant les notifications lorsqu’un nouveau candidat postule.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Email CC par défaut</th>
+                        <td>
+                            <input type="email" name="default_cc_email" value="<?php echo esc_attr($default_cc); ?>" class="regular-text" required>
+                            <p class="description">Sera utilisé si l’offre d’emploi ne dispose pas d’un email CC spécifique.</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
             <hr>
-            <h2>1. Email gửi cho Ứng viên</h2>
+            <h2>2. Contenu de l’email envoyé au candidat</h2>
+            <p>Utilisez les balises suivantes pour remplacer automatiquement le contenu : <code>[job_title]</code>, <code>[candidate_name]</code>, <code>[candidate_first_name]</code>, <code>[candidate_last_name]</code>, <code>[candidate_civility]</code>, <code>[candidate_email]</code>, <code>[candidate_phone]</code>, <code>[candidate_city]</code></p>
             <table class="form-table">
                 <tr>
                     <th>Subject</th>
@@ -902,7 +935,8 @@ function job_app_email_settings_callback() {
             </table>
 
             <hr>
-            <h2>2. Email gửi cho Admin & CC</h2>
+            <h2>3. Contenu de l’email envoyé à l’administrateur et aux CC</h2>
+            <p>Utilisez les balises suivantes pour remplacer automatiquement le contenu: <code>[job_title]</code>, <code>[candidate_name]</code>, <code>[candidate_first_name]</code>, <code>[candidate_last_name]</code>, <code>[candidate_civility]</code>, <code>[candidate_email]</code>, <code>[candidate_phone]</code>, <code>[candidate_city]</code></p>
             <table class="form-table">
                 <tr>
                     <th>Subject</th>
@@ -915,7 +949,7 @@ function job_app_email_settings_callback() {
             </table>
 
             <p class="submit">
-                <input type="submit" name="save_email_templates" class="button button-primary" value="Save Changes">
+                <input type="submit" name="save_email_templates" class="button button-primary" value="Enregistrer les modifications">
             </p>
         </form>
     </div>
